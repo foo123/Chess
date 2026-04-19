@@ -108,9 +108,10 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
     opts.depth = stdMath.max(self.opts.depth || 0, 1);
     opts.depthM = opts.depth;
 
-    opts.iterations = null != self.opts.iterations ? self.opts.iterations : 100;
-    opts.depthPlayout = null != self.opts.playout ? self.opts.playout : Infinity;
+    opts.depthBNS = null != self.opts.bns ? +self.opts.bns : Infinity;
+    opts.depthMCTS = null != self.opts.mcts ? +self.opts.mcts : Infinity;
     opts.depthUCT = +(self.opts.uct || 0);
+    opts.iterations = null != self.opts.iterations ? +self.opts.iterations : 100;
 
     opts.uct = 0 < opts.depthUCT ? {} : null; // uct stats storage, if needed
     opts.tt = {}; // transposition table, where needed, as needed
@@ -121,7 +122,7 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
     opts.iterativedeepening = self.opts.iterativedeepening;
     if (opts.iterativedeepening) opts.depth = stdMath.min(2, opts.depthM); // iterative deepening
 
-    opts.heuristicpruning = opts.depthPlayout > opts.depthM;
+    opts.heuristicpruning = "ab" === opts.algo && opts.depthMCTS > opts.depthM && opts.depthBNS > opts.depthM;
 
     if (is_function(self.opts.cb))
     {
@@ -186,7 +187,7 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
 
             if (opts.iterativedeepening)
             {
-                if (opts.depth >= opts.depthPlayout) return ret(board.encode_move(random_choice(best_moves, null)));
+                if (opts.depth >= opts.depthMCTS) return ret(board.encode_move(random_choice(best_moves, null)));
                 order_moves(scores, moves, moves_next); // move ordering
                 opts.depth += 2; // search deeper next time
                 // reset
@@ -198,10 +199,10 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
 
         if ((i < n) && (opts.depth <= opts.depthM))
         {
-            if (has_timelimit && ("mcts" !== opts.algo) && (perf.now() - start > time))
+            if (has_timelimit && opts.iterativedeepening && (perf.now() - start > time))
             {
                 // time limit exceeded
-                return ret(board.encode_move(random_choice(best_moves, null)));
+                return ret(board.encode_move(random_choice(i+1 >= 0.75*n ? best_move : best_moves, null)));
             }
 
             var score = 0, mov = moves[i],
@@ -242,8 +243,8 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
 // search algorithms -------------------
 function alphabeta(opts, board, color, depth, sgn, moves, alpha, beta)
 {
-    // Alpha-Beta Search with Transposition Table with Depth algorithm
-    var moves_next, i, n, mov, move, key, tp, score, value, opponent = OPPOSITE[color];
+    // Alpha Beta Search with Transposition Table algorithm
+    var moves_next, i, n, mov, move, key, tp, score, value, opponent = OPPOSITE[color], a, b;
     if (depth >= opts.depth)
     {
         return opts.eval_pos ? opts.eval_pos(board, 0 > sgn ? opponent : color) : 0;
@@ -256,15 +257,23 @@ function alphabeta(opts, board, color, depth, sgn, moves, alpha, beta)
 
     key = board.key();
     tp = opts.tt[key];
-    if (tp && (tp.d >= depth))
+    if (tp)
     {
-        // transposition that is already searched deeper
-        return tp.v;
+        // transposition found
+        if ("ab" === opts.algo && tp.d >= depth) return tp.v;
+        if (tp.lo >= beta) return tp.lo;
+        if (tp.hi <= alpha) return tp.hi;
+        alpha = stdMath.max(alpha, tp.lo);
+        beta = stdMath.min(beta, tp.hi);
     }
 
-    if (depth >= opts.depthPlayout)
+    if (depth >= opts.depthMCTS)
     {
         value = mcts(opts, board, color, depth, sgn, moves);
+    }
+    else if (depth >= opts.depthBNS)
+    {
+        value = bns(opts, board, color, depth, sgn, moves, alpha, beta);
     }
     else
     {
@@ -289,86 +298,6 @@ function alphabeta(opts, board, color, depth, sgn, moves, alpha, beta)
         if (0 < sgn)
         {
             value = -Infinity;
-            for (i=0; i<n; ++i)
-            {
-                mov = moves[i];
-                move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
-                moves_next = board.all_moves_for(opponent, true);
-                score = sgn*(opts.eval_pos ? 0 : opts.eval_move(board, color, move, moves_next.length));
-                value = stdMath.max(value, score+alphabeta(opts, board, opponent, depth+1, -sgn, moves_next, alpha, beta))
-                board.unmove(move);
-                if (value >= beta) break; // beta cutoff
-                alpha = stdMath.max(alpha, value);
-            }
-        }
-        else
-        {
-            value = Infinity;
-            for (i=0; i<n; ++i)
-            {
-                mov = moves[i];
-                move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
-                moves_next = board.all_moves_for(opponent, true);
-                score = sgn*(opts.eval_pos ? 0 : opts.eval_move(board, color, move, moves_next.length));
-                value = stdMath.min(value, score+alphabeta(opts, board, opponent, depth+1, -sgn, moves_next, alpha, beta));
-                board.unmove(move);
-                if (value <= alpha) break; // alpha cutoff
-                beta = stdMath.min(beta, value);
-            }
-        }
-    }
-
-    // store value on transposition table for this depth
-    if (!tp || (tp.d < depth)) opts.tt[key] = {v:value, d:depth >= opts.depthPlayout ? opts.depthM : depth};
-
-    return value;
-}
-function mtdf(opts, board, color, depth, sgn, moves)
-{
-    // MTD(f) Search algorithm
-    var g = opts.f, hi = Infinity, lo = -Infinity, beta;
-    do {
-        beta = g === lo ? g + 1 : g;
-        g = alphabeta_bounds(opts, board, color, depth, sgn, moves, beta-1, beta);
-        if (g < beta) hi = g; else lo = g;
-    } while (lo+5 < hi);
-    return g;
-}
-function alphabeta_bounds(opts, board, color, depth, sgn, moves, alpha, beta)
-{
-    // Alpha-Beta Search with Transposition Table with Bounds algorithm
-    var moves_next, i, n, mov, move, key, tp, score, opponent = OPPOSITE[color], g, a, b;
-    if (depth >= opts.depth)
-    {
-        return opts.eval_pos ? opts.eval_pos(board, 0 > sgn ? opponent : color) : 0;
-    }
-    if (!moves) moves = board.all_moves_for(color, true);
-    if (!moves.length)
-    {
-        return opts.eval_pos ? opts.eval_pos(board, 0 > sgn ? opponent : color) : 0;
-    }
-
-    key = board.key();
-    tp = opts.tt[key];
-    if (tp)
-    {
-        // transposition table
-        if (tp.lo >= beta) return tp.lo;
-        if (tp.hi <= alpha) return tp.hi;
-        alpha = stdMath.max(alpha, tp.lo);
-        beta = stdMath.min(beta, tp.hi);
-    }
-
-    if (depth >= opts.depthPlayout)
-    {
-        g = mcts(opts, board, color, depth, sgn, moves);
-    }
-    else
-    {
-        n = moves.length;
-        if (0 < sgn)
-        {
-            g = -Infinity;
             a = alpha;
             for (i=0; i<n; ++i)
             {
@@ -376,15 +305,15 @@ function alphabeta_bounds(opts, board, color, depth, sgn, moves, alpha, beta)
                 move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
                 moves_next = board.all_moves_for(opponent, true);
                 score = sgn*(opts.eval_pos ? 0 : opts.eval_move(board, color, move, moves_next.length));
-                g = stdMath.max(g, score+alphabeta_bounds(opts, board, opponent, depth+1, -sgn, moves_next, a, beta))
+                value = stdMath.max(value, score+alphabeta(opts, board, opponent, depth+1, -sgn, moves_next, a, beta))
                 board.unmove(move);
-                if (g >= beta) break; // beta cutoff
-                a = stdMath.max(a, g);
+                if (value >= beta) break; // beta cutoff
+                a = stdMath.max(a, value);
             }
         }
         else
         {
-            g = Infinity;
+            value = Infinity;
             b = beta;
             for (i=0; i<n; ++i)
             {
@@ -392,38 +321,57 @@ function alphabeta_bounds(opts, board, color, depth, sgn, moves, alpha, beta)
                 move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
                 moves_next = board.all_moves_for(opponent, true);
                 score = sgn*(opts.eval_pos ? 0 : opts.eval_move(board, color, move, moves_next.length));
-                g = stdMath.min(g, score+alphabeta_bounds(opts, board, opponent, depth+1, -sgn, moves_next, alpha, b));
+                value = stdMath.min(value, score+alphabeta(opts, board, opponent, depth+1, -sgn, moves_next, alpha, b));
                 board.unmove(move);
-                if (g <= alpha) break; // alpha cutoff
-                b = stdMath.min(b, g);
+                if (value <= alpha) break; // alpha cutoff
+                b = stdMath.min(b, value);
             }
         }
     }
 
-    if (!tp) opts.tt[key] = tp = {lo:-Infinity, hi:Infinity};
-    // fail low implies an upper bound
-    if (g <= alpha)
+    // store on transposition table
+    if (!tp) opts.tt[key] = tp = {lo:-Infinity, hi:Infinity, v:0, d:0};
+    if (tp.d < depth)
     {
-        tp.hi = g;
+        tp.d = depth >= opts.depthMCTS ? opts.depthM : depth;
+        tp.v = value;
     }
-    // accurate minimax value - will not occur if called with zero window
-    else if (alpha < g && g < beta)
+    if (value <= alpha)
     {
-        tp.lo = g;
-        tp.hi = g;
+        // fail low result implies an upper bound
+        tp.hi = value;
     }
-    // fail high implies a lower bound
-    else if (g >= beta)
+    if (alpha < value && value < beta)
     {
-        tp.lo = g;
+        // accurate minimax value - will not occur if called with zero window
+        tp.lo = value;
+        tp.hi = value;
     }
+    if (value >= beta)
+    {
+        // fail high result implies a lower bound
+        tp.lo = value;
+    }
+
+    return value;
+}
+function mtdf(opts, board, color, depth, sgn, moves)
+{
+    // MTD(f) Search algorithm
+    var g = opts.f || 0, hi = Infinity, lo = -Infinity, beta;
+    do {
+        beta = g === lo ? g + 1 : g;
+        g = alphabeta(opts, board, color, depth, sgn, moves, beta-1, beta);
+        if (g < beta) hi = g; else lo = g;
+    } while (lo+5 < hi);
     return g;
 }
-function bns(opts, board, color, depth, sgn, moves)
+function bns(opts, board, color, depth, sgn, moves, alpha, beta)
 {
     // Best Node Search algorithm
-    var moves_next, i, n, mov, move, score, opponent = OPPOSITE[color],
-        alpha, beta, test, count, newcount, value;
+    var moves_next, i, n, mov, move,
+        score, opponent = OPPOSITE[color],
+        test, count, newcount, value;
     if (depth >= opts.depth)
     {
         return opts.eval_pos ? opts.eval_pos(board, 0 > sgn ? opponent : color) : 0;
@@ -436,10 +384,18 @@ function bns(opts, board, color, depth, sgn, moves)
     n = moves.length;
     moves_next = new Array(n);
     count = n;
-    alpha = -opts.MATE;
-    beta = opts.MATE;
-    // previous value
-    test = opts.f0;
+    if (null == alpha)
+    {
+        alpha = -opts.MATE;
+        beta = opts.MATE;
+        // previous best guess
+        test = opts.f0 || 0;
+    }
+    else
+    {
+        // next guess
+        test = alpha + (beta - alpha) * /*stdMath.random()*/(count - 1) / count;
+    }
     do {
         newcount = 0;
         value = -Infinity;
@@ -449,7 +405,7 @@ function bns(opts, board, color, depth, sgn, moves)
             move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
             if (!moves_next[i]) moves_next[i] = board.all_moves_for(opponent, true);
             score = sgn*(opts.eval_pos ? 0 : opts.eval_move(board, color, move, moves_next[i].length));
-            score += alphabeta_bounds(opts, board, opponent, depth+1, -sgn, moves_next[i], test-1, test);
+            score += alphabeta(opts, board, opponent, depth+1, -sgn, moves_next[i], test-1, test);
             board.unmove(move);
             if (score >= test)
             {

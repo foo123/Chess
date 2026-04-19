@@ -1,13 +1,13 @@
 "use strict";
 
-// use: node tournament.js [stockfish|sunfish|ab|mtdf|bns|mcts|abmcts|mtdfmcts] [stockfish|sunfish|ab|mtdf|bns|mcts|abmcts|mtdfmcts] nmatches --depth=DEPTH --playout=PLAYOUT --iter=ITER --uct=UCT --deepen --show --elo=ELO
+// use: node tournament.js [stockfish|sunfish|ab|mtdf|bns|mcts|abbns|mtdfbns|abmcts|mtdfmcts] [stockfish|sunfish|ab|mtdf|bns|mcts|abbns|mtdfbns|abmcts|mtdfmcts] nmatches --depth=DEPTH --bns=BNS --mcts=MCTS --uct=UCT --iter=ITER --deepen --show --elo=ELO
 
 // In tournament of 10 match(es) between STOCKFISH 16.1 (ELO1900) and SUNFISH 2023 result is 8 - 2 (min.moves 46,max.moves 128)
 // In tournament of 10 match(es) between STOCKFISH 18 (ELO1900) and SUNFISH 2023 result is 7 - 3 (min.moves 36,max.moves 86)
 
 // In tournament of 4 match(es) between AB-245-d and SUNFISH 2023 result is 1.5 - 2.5 (min.moves 12,max.moves 127)
 
-// In tournament of 5 match(es) between MTD(f)-245-d and SUNFISH 2023 result is 1.5 - 3.5
+// In tournament of 5 match(es) between MTDf-245-d and SUNFISH 2023 result is 1.5 - 3.5
 
 // In tournament of 10 match(es) between BNS-7 and SUNFISH 2023 result is 3 - 7 (min.moves 26,max.moves 106)
 // In tournament of 7 match(es) between BNS-245-d and SUNFISH 2023 result is 1.5 - 5.5
@@ -24,6 +24,8 @@
 // In tournament of 10 match(es) between ABMCTS-25-3-4-300 and SUNFISH 2023 result is 6 - 4 (min.moves 48,max.moves 138)
 
 // In tournament of 6 match(es) between AB-245-d and MCTS-25-4-500 result is 0 - 6 (min.moves 9,max.moves 59)
+// In tournament of 6 match(es) between MTDf-245-d and MCTS-25-4-500 result is 3 - 3 (min.moves 46,max.moves 144)
+// In tournament of 6 match(es) between BNS-245-d and MCTS-25-4-500 result is 0 - 6 (min.moves 13,max.moves 62)
 // In tournament of 5 match(es) between ABMCTS-25-3-4-300 and MCTS-25-4-300 result is 5 - 0
 
 const args = (function parse_args() {
@@ -32,7 +34,8 @@ const args = (function parse_args() {
         PLAYER2:        'ab',
         NUM_MATCHES:    2,
         DEPTH:          3,
-        PLAYOUT:        Infinity,
+        BNS:            Infinity,
+        MCTS:           Infinity,
         UCT:            0,
         ITER:           100,
         DEEPEN:         false,
@@ -45,6 +48,8 @@ const args = (function parse_args() {
         'mtdf',
         'bns',
         'mcts',
+        'abbns',
+        'mtdfbns',
         'abmcts',
         'mtdfmcts',
         'sunfish',
@@ -66,7 +71,8 @@ const args = (function parse_args() {
     while (process.argv.length > i)
     {
         if ('--depth=' === process.argv[i].slice(0, 8).toLowerCase()) args.DEPTH = parseInt(process.argv[i].slice(8).trim()) || 0;
-        if ('--playout=' === process.argv[i].slice(0, 10).toLowerCase()) args.PLAYOUT = parseInt(process.argv[i].slice(10).trim()) || 0;
+        if ('--bns=' === process.argv[i].slice(0, 6).toLowerCase()) args.BNS = parseInt(process.argv[i].slice(6).trim()) || 0;
+        if ('--mcts=' === process.argv[i].slice(0, 7).toLowerCase()) args.MCTS = parseInt(process.argv[i].slice(7).trim()) || 0;
         if ('--uct=' === process.argv[i].slice(0, 6).toLowerCase()) args.UCT = parseInt(process.argv[i].slice(6).trim()) || 0;
         if ('--iter=' === process.argv[i].slice(0, 7).toLowerCase()) args.ITER = parseInt(process.argv[i].slice(7).trim()) || 100;
         if ('--deepen' === process.argv[i].slice(0, 8).toLowerCase()) args.DEEPEN = true;
@@ -87,10 +93,12 @@ const engine = {
 const opts = {
     ab:        {algo:"ab", iterativedeepening:true, depth:245, time:10000},
     mtdf:      {algo:"mtdf", iterativedeepening:true, depth:245, time:10000},
-    bns:       {algo:"bns", iterativedeepening:args.DEEPEN, depth:args.DEPTH, time:10000},
+    bns:       {algo:"bns", iterativedeepening:true, depth:245, time:10000},
     mcts:      {algo:"mcts", iterations:args.ITER, uct:args.UCT, depth:args.DEPTH, time:10000},
-    abmcts:    {algo:"ab", playout:args.PLAYOUT, iterations:args.ITER, uct:args.UCT, depth:args.DEPTH, time:10000},
-    mtdfmcts:  {algo:"mtdf", playout:args.PLAYOUT, iterations:args.ITER, uct:args.UCT, depth:args.DEPTH, time:10000},
+    abbns:     {algo:"ab", bns:args.BNS, depth:args.DEPTH, time:10000},
+    mtdfbns:   {algo:"mtdf", bns:args.BNS, depth:args.DEPTH, time:10000},
+    abmcts:    {algo:"ab", mcts:args.MCTS, uct:args.UCT, iterations:args.ITER, depth:args.DEPTH, time:10000},
+    mtdfmcts:  {algo:"mtdf", mcts:args.MCTS, uct:args.UCT, iterations:args.ITER, depth:args.DEPTH, time:10000},
     sunfish:   {depth:245, time:10000},
     stockfish: {elo:args.ELO, depth:245, time:10000}
 };
@@ -103,6 +111,10 @@ const init = {
     bns: function() {
     },
     mcts: function() {
+    },
+    abbns: function() {
+    },
+    mtdfbns: function() {
     },
     abmcts: function() {
     },
@@ -130,6 +142,12 @@ const play = {
     mcts: function(game, then) {
         then((new ChessSearch.HybridSearch(game, opts.mcts)).bestMove(game.getBoard().turn));
     },
+    abbns: function(game, then) {
+        then((new ChessSearch.HybridSearch(game, opts.abbns)).bestMove(game.getBoard().turn));
+    },
+    mtdfbns: function(game, then) {
+        then((new ChessSearch.HybridSearch(game, opts.mtdfbns)).bestMove(game.getBoard().turn));
+    },
     abmcts: function(game, then) {
         then((new ChessSearch.HybridSearch(game, opts.abmcts)).bestMove(game.getBoard().turn));
     },
@@ -148,11 +166,13 @@ const play = {
 };
 const player = {
     ab:         'AB-'+String(opts.ab.depth)+(opts.ab.iterativedeepening ? '-d' : ''),
-    mtdf:       'MTD(f)-'+String(opts.mtdf.depth)+(opts.mtdf.iterativedeepening ? '-d' : ''),
+    mtdf:       'MTDf-'+String(opts.mtdf.depth)+(opts.mtdf.iterativedeepening ? '-d' : ''),
     bns:        'BNS-'+String(opts.bns.depth)+(opts.bns.iterativedeepening ? '-d' : ''),
     mcts:       'MCTS-'+String(opts.mcts.depth)+'-'+String(opts.mcts.uct)+'-'+String(opts.mcts.iterations),
-    abmcts:     'ABMCTS-'+String(opts.abmcts.depth)+'-'+String(opts.abmcts.playout)+'-'+String(opts.abmcts.uct)+'-'+String(opts.abmcts.iterations),
-    mtdfmcts:   'MTDMCTS-'+String(opts.mtdfmcts.depth)+'-'+String(opts.mtdfmcts.playout)+'-'+String(opts.mtdfmcts.uct)+'-'+String(opts.mtdfmcts.iterations),
+    abbns:      'ABBNS-'+String(opts.abbns.depth)+'-'+String(opts.abbns.bns),
+    mtdfbns:    'MTDBNS-'+String(opts.mtdfbns.depth)+'-'+String(opts.mtdfbns.bns),
+    abmcts:     'ABMCTS-'+String(opts.abmcts.depth)+'-'+String(opts.abmcts.mcts)+'-'+String(opts.abmcts.uct)+'-'+String(opts.abmcts.iterations),
+    mtdfmcts:   'MTDMCTS-'+String(opts.mtdfmcts.depth)+'-'+String(opts.mtdfmcts.mcts)+'-'+String(opts.mtdfmcts.uct)+'-'+String(opts.mtdfmcts.iterations),
     stockfish:  'STOCKFISH 18 (ELO'+String(opts.stockfish.elo)+')',
     sunfish:    'SUNFISH 2023'
 };
