@@ -7,9 +7,10 @@
 
 // In tournament of 4 match(es) between AB-245-d and SUNFISH 2023 result is 1.5 - 2.5 (min.moves 12,max.moves 127)
 
-// In tournament of 5 match(es) between MTD(f)-245-d and SUNFISH 2023 result is 1.5 - 3.5 (min.moves 26,max.moves 106)
+// In tournament of 5 match(es) between MTD(f)-245-d and SUNFISH 2023 result is 1.5 - 3.5
 
 // In tournament of 10 match(es) between BNS-7 and SUNFISH 2023 result is 3 - 7 (min.moves 26,max.moves 106)
+// In tournament of 7 match(es) between BNS-245-d and SUNFISH 2023 result is 1.5 - 5.5
 
 // In tournament of 10 match(es) between MCTS-25-2-500 and SUNFISH 2023 result is 5 - 5 (min.moves 26,max.moves 123)
 // In tournament of 10 match(es) between MCTS-25-3-500 and SUNFISH 2023 result is 4.5 - 5.5 (min.moves 8,max.moves 150)
@@ -23,7 +24,7 @@
 // In tournament of 10 match(es) between ABMCTS-25-3-4-300 and SUNFISH 2023 result is 6 - 4 (min.moves 48,max.moves 138)
 
 // In tournament of 6 match(es) between AB-245-d and MCTS-25-4-500 result is 0 - 6 (min.moves 9,max.moves 59)
-// In tournament of 5 match(es) between ABMCTS-25-3-4-300 and MCTS-25-4-300 result is 5 - 0 (min.moves 9,max.moves 59)
+// In tournament of 5 match(es) between ABMCTS-25-3-4-300 and MCTS-25-4-300 result is 5 - 0
 
 const args = (function parse_args() {
     const args = {

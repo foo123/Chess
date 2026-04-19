@@ -79,35 +79,49 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
     // 6. "Pruning Game Tree by Rollouts", Bojun Huang
     // 7. "A Rollout-Based Search Algorithm Unifying MCTS and Alpha-Beta", Hendrik Baier
 
-    var self = this, board = self.game.getBoard().clone(),
-        opts = {}, opponent = OPPOSITE[color],
+    var self = this,
+        board = self.game.getBoard().clone(),
+        opponent = OPPOSITE[color],
         moves = shuffle(board.all_moves_for(color, true)),
-        i = 0, n = moves.length,
+        i = 0,
+        n = moves.length,
         moves_next = new Array(n),
         scores = new Array(n),
         max = -Infinity,
-        best_move0 = [], best_move = [],
-        stopped, start = 0, time, time_limit, has_timelimit = false,
+        best_moves = [],
+        best_move = [],
+        opts = {},
+        stopped,
+        start = 0, now = 0,
+        time, time_limit,
+        has_timelimit = false,
         do_next = null, ret = null;
+
     stopped = self.opts.stopped || return_false;
     time_limit = (BLACK === color ? self.opts.btime : self.opts.wtime) || self.opts.time || Infinity;
-    opts.algo = null != self.opts.algo ? String(self.opts.algo) : "ab";
+
+    opts.algo = null != self.opts.algo ? String(self.opts.algo).toLowerCase() : "ab";
     opts.eval_pos = self.opts.eval_pos;
     opts.eval_move = self.opts.eval_move || eval_move;
     opts.MATE = opts.eval_pos ? (opts.eval_pos.MATE) : (opts.eval_move.MATE);
-    opts.uct = null;
-    opts.tt = null;
+
     opts.depth = stdMath.max(self.opts.depth || 0, 1);
     opts.depthM = opts.depth;
+
     opts.iterations = null != self.opts.iterations ? self.opts.iterations : 100;
     opts.depthPlayout = null != self.opts.playout ? self.opts.playout : Infinity;
     opts.depthUCT = +(self.opts.uct || 0);
-    if (0 < opts.depthUCT) opts.uct = {}; // uct stats storage, if needed
+
+    opts.uct = 0 < opts.depthUCT ? {} : null; // uct stats storage, if needed
     opts.tt = {}; // transposition table, where needed, as needed
+
+    opts.f = 0;
+    opts.f0 = 0;
+
     opts.iterativedeepening = self.opts.iterativedeepening;
     if (opts.iterativedeepening) opts.depth = stdMath.min(2, opts.depthM); // iterative deepening
+
     opts.heuristicpruning = opts.depthPlayout > opts.depthM;
-    opts.f = 0;
 
     if (is_function(self.opts.cb))
     {
@@ -144,12 +158,14 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
             return move;
         };
     }
+
     if (isFinite(time_limit))
     {
         has_timelimit = true;
         time = time_limit * 0.9;
         start = perf.now();
     }
+
     return do_next(function next() {
         if (stopped()) return ret(null);
 
@@ -157,54 +173,73 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
         {
             if ((n > 0) && (opts.depth <= opts.depthM))
             {
-                best_move0 = best_move;
+                best_moves = best_move;
                 best_move = [];
             }
 
             if (has_timelimit)
             {
-                var now = perf.now();
+                now = perf.now();
                 console.log('time:'+stdMath.floor(now - start)+', limit:'+time_limit);
-                if (now - start > time) return ret(board.encode_move(random_choice(best_move0, null)));
+                if (now - start > time) return ret(board.encode_move(random_choice(best_moves, null)));
             }
 
             if (opts.iterativedeepening)
             {
-                if (opts.depth >= opts.depthPlayout) return ret(board.encode_move(random_choice(best_move0, null)));
+                if (opts.depth >= opts.depthPlayout) return ret(board.encode_move(random_choice(best_moves, null)));
                 order_moves(scores, moves, moves_next); // move ordering
                 opts.depth += 2; // search deeper next time
                 // reset
                 i = 0;
                 max = -Infinity;
-                opts.tt = {};
+                opts.tt = {}; // reset transposition table ??
             }
         }
 
         if ((i < n) && (opts.depth <= opts.depthM))
         {
-            var score = 0,
-                mov = moves[i],
+            if (has_timelimit && ("mcts" !== opts.algo) && (perf.now() - start > time))
+            {
+                // time limit exceeded
+                return ret(board.encode_move(random_choice(best_moves, null)));
+            }
+
+            var score = 0, mov = moves[i],
                 move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
+
             if (!moves_next[i]) moves_next[i] = board.all_moves_for(opponent, true);
+
             score = (opts.eval_pos ? 0 : opts.eval_move(board, color, move, moves_next[i].length));
-            opts.f = score[i] || 0;
-            opts.f0 = opts.f - score;
+
+            if (null == score[i])
+            {
+                opts.f = 0;
+                opts.f0 = 0;
+            }
+            else
+            {
+                opts.f = score[i];
+                opts.f0 = opts.f - score;
+            }
+
             score += evaluate(opts, board, opponent, 2, -1, moves_next[i]);
-            board.unmove(move);
             scores[i] = score;
+
+            board.unmove(move);
+
             if (score > max) {max = score; best_move = [mov];}
             else if (score === max) {best_move.push(mov);}
-            ++i;
-            return do_next(next);
+
+            ++i; return do_next(next);
         }
         else
         {
-            return ret(board.encode_move(random_choice(best_move0, null)));
+            return ret(board.encode_move(random_choice(best_moves, null)));
         }
     });
 };
 
-// search algorithms
+// search algorithms -------------------
 function alphabeta(opts, board, color, depth, sgn, moves, alpha, beta)
 {
     // Alpha-Beta Search with Transposition Table with Depth algorithm
@@ -496,7 +531,7 @@ function mcts_playout(opts, board, color, depth, sgn, moves)
     mov = moves[i];
     move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
     moves_next = board.all_moves_for(OPPOSITE[color], true);
-    value = (opts.eval_pos ? 0 : (sgn*opts.eval_move(board, color, move, moves_next.length)));
+    value = opts.eval_pos ? 0 : (sgn*opts.eval_move(board, color, move, moves_next.length));
     value += mcts_playout(opts, board, OPPOSITE[color], depth+1, -sgn, moves_next);
     board.unmove(move);
     if (uct)
@@ -521,6 +556,8 @@ function win(x, MATE)
     return clamp((x+MATE)/(2*MATE), 0, 1);
     //return 1 / (1 + stdMath.exp(-x/20));
 }
+
+
 function evaluate(opts, board, color, depth, sgn, moves)
 {
     switch (opts.algo)
@@ -568,7 +605,9 @@ function eval_pos(board, color)
     return 0; // random
 }
 eval_pos.MATE = MATE;
-// utils
+
+
+// utils -----------------------
 function shuffle(a, a0, a1)
 {
     // O(n)
