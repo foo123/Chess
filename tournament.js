@@ -7,6 +7,8 @@
 
 // In tournament of 4 match(es) between AB-245-d and SUNFISH 2023 result is 1.5 - 2.5 (min.moves 12,max.moves 127)
 
+// In tournament of 5 match(es) between MTD(f)-245-d and SUNFISH 2023 result is 1.5 - 3.5 (min.moves 26,max.moves 106)
+
 // In tournament of 10 match(es) between BNS-7 and SUNFISH 2023 result is 3 - 7 (min.moves 26,max.moves 106)
 
 // In tournament of 10 match(es) between MCTS-25-2-500 and SUNFISH 2023 result is 5 - 5 (min.moves 26,max.moves 123)
@@ -84,7 +86,7 @@ const engine = {
 const opts = {
     ab:        {algo:"ab", iterativedeepening:true, depth:245, time:10000},
     mtdf:      {algo:"mtdf", iterativedeepening:true, depth:245, time:10000},
-    bns:       {algo:"bns", depth:args.DEPTH, time:10000},
+    bns:       {algo:"bns", iterativedeepening:args.DEEPEN, depth:args.DEPTH, time:10000},
     mcts:      {algo:"mcts", iterations:args.ITER, uct:args.UCT, depth:args.DEPTH, time:10000},
     abmcts:    {algo:"ab", playout:args.PLAYOUT, iterations:args.ITER, uct:args.UCT, depth:args.DEPTH, time:10000},
     mtdfmcts:  {algo:"mtdf", playout:args.PLAYOUT, iterations:args.ITER, uct:args.UCT, depth:args.DEPTH, time:10000},

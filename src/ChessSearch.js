@@ -83,6 +83,7 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
         opts = {}, opponent = OPPOSITE[color],
         moves = shuffle(board.all_moves_for(color, true)),
         i = 0, n = moves.length,
+        moves_next = new Array(n),
         scores = new Array(n),
         max = -Infinity,
         best_move0 = [], best_move = [],
@@ -93,6 +94,7 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
     opts.algo = null != self.opts.algo ? String(self.opts.algo) : "ab";
     opts.eval_pos = self.opts.eval_pos;
     opts.eval_move = self.opts.eval_move || eval_move;
+    opts.MATE = opts.eval_pos ? (opts.eval_pos.MATE) : (opts.eval_move.MATE);
     opts.uct = null;
     opts.tt = null;
     opts.depth = stdMath.max(self.opts.depth || 0, 1);
@@ -168,7 +170,8 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
 
             if (opts.iterativedeepening)
             {
-                moves = order_moves(moves, scores); // move ordering
+                if (opts.depth >= opts.depthPlayout) return ret(board.encode_move(random_choice(best_move0, null)));
+                order_moves(scores, moves, moves_next); // move ordering
                 opts.depth += 2; // search deeper next time
                 // reset
                 i = 0;
@@ -179,13 +182,14 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
 
         if ((i < n) && (opts.depth <= opts.depthM))
         {
-            var mov = moves[i],
-                move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true),
-                moves_next = board.all_moves_for(opponent, true),
-                score = 0;
+            var score = 0,
+                mov = moves[i],
+                move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
+            if (!moves_next[i]) moves_next[i] = board.all_moves_for(opponent, true);
+            score = (opts.eval_pos ? 0 : opts.eval_move(board, color, move, moves_next[i].length));
             opts.f = score[i] || 0;
-            score = evaluate(opts, board, opponent, 2, -1, moves_next);
-            score += (opts.eval_pos ? 0 : opts.eval_move(board, color, move, moves_next.length));
+            opts.f0 = opts.f - score;
+            score += evaluate(opts, board, opponent, 2, -1, moves_next[i]);
             board.unmove(move);
             scores[i] = score;
             if (score > max) {max = score; best_move = [mov];}
@@ -384,8 +388,7 @@ function bns(opts, board, color, depth, sgn, moves)
 {
     // Best Node Search algorithm
     var moves_next, i, n, mov, move, score, opponent = OPPOSITE[color],
-        alpha, beta, test, count, newcount, value,
-        MATE = opts.eval_pos ? (opts.eval_pos.MATE) : (opts.eval_move.MATE);
+        alpha, beta, test, count, newcount, value;
     if (depth >= opts.depth)
     {
         return opts.eval_pos ? opts.eval_pos(board, 0 > sgn ? opponent : color) : 0;
@@ -398,13 +401,13 @@ function bns(opts, board, color, depth, sgn, moves)
     n = moves.length;
     moves_next = new Array(n);
     count = n;
-    alpha = -(MATE+10);
-    beta = MATE+10;
+    alpha = -opts.MATE;
+    beta = opts.MATE;
+    // previous value
+    test = opts.f0;
     do {
-        // next guess
-        test = alpha + (beta - alpha) * stdMath.random()/*(count - 1) / count*/;
         newcount = 0;
-        value = 0;
+        value = -Infinity;
         for (i=0; i<n; ++i)
         {
             mov = moves[i];
@@ -413,10 +416,10 @@ function bns(opts, board, color, depth, sgn, moves)
             score = sgn*(opts.eval_pos ? 0 : opts.eval_move(board, color, move, moves_next[i].length));
             score += alphabeta_bounds(opts, board, opponent, depth+1, -sgn, moves_next[i], test-1, test);
             board.unmove(move);
-            if (sgn*score >= test)
+            if (score >= test)
             {
                 ++newcount;
-                value = score;
+                value = stdMath.max(value, score);
             }
         }
         // update alpha-beta range
@@ -428,16 +431,18 @@ function bns(opts, board, color, depth, sgn, moves)
         {
             beta = test < beta ? test : (test-1);
         }
-        else if (alpha < test)
+        else if (test < beta)
         {
-            alpha = test;
+            beta = test;
         }
         else
         {
-            beta = test < beta ? test : (test-1);
+            alpha = test > alpha ? test : (test+1);
         }
         // update number of sub-trees that exceeds separation test value
         count = 0 < newcount ? newcount : count;
+        // next guess
+        test = alpha + (beta - alpha) * /*stdMath.random()*/(count - 1) / count;
     } while (!(2 > beta - alpha || 1 === newcount));
 
     return value;
@@ -498,7 +503,7 @@ function mcts_playout(opts, board, color, depth, sgn, moves)
     {
         // update UCT
         uct[i].ni += 1;
-        w = win(sgn*value, opts.eval_pos ? (opts.eval_pos.MATE) : (opts.eval_move.MATE));
+        w = win(sgn*value, opts.MATE);
         d = w - uct[i].mi;
         uct[i].mi = uct[i].mi + d/uct[i].ni;
         uct[i].vi = ((uct[i].ni-1)*uct[i].vi + d*(w - uct[i].mi))/uct[i].ni;
@@ -577,20 +582,22 @@ function shuffle(a, a0, a1)
     }
     return a;
 }
-function order_moves(moves, scores)
+function order_moves(scores, moves, moves_next)
 {
-    var si = scores.map(function(s, i) {return [s, i];}).sort(function(a, b) {return b[0]-a[0];});
-    scores.forEach(function(s, i) {scores[i] = si[i][0];});
-    return si.map(function(si) {return moves[si[1]];});
+    var si = scores.map(function(s, i) {return [s, moves[i], moves_next ? moves_next[i] : null];}).sort(function(a, b) {return b[0]-a[0];});
+    scores.forEach(function(_, i) {scores[i] = si[i][0];});
+    moves.forEach(function(_, i) {moves[i] = si[i][1];});
+    if (moves_next) moves_next.forEach(function(_, i) {moves_next[i] = si[i][2];});
+    return moves;
 }
 function best_n_moves(n, moves, board, player, sgn)
 {
-    return order_moves(moves, moves.map(function(mov) {
+    return order_moves(moves.map(function(mov) {
         var move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true),
             score = sgn*eval_move(board, player, move, null);
         board.unmove(move);
         return score;
-    })).slice(0, n);
+    }), moves.slice()).slice(0, n);
 }
 function arg_max(values, type)
 {

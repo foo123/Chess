@@ -6,17 +6,17 @@ Chess Game, Chess Board, Chess Engine and GUI
 
 ## ChessGame
 
-Represents a game of chess, the possible moves, when the game is over and who wins.
+Represents a game of chess, the possible moves, when the game is over and who wins.  
 version: 1.0.0
 
 ## ChessBoard
 
-Represents the board of chess in HTML.
+Represents the board of chess in HTML.  
 version: 1.0.0
 
 ## ChessSearch
 
-Implements various search methods for a best move in a game of chess.
+Implements various search methods for a best move in a game of chess.  
 version: 0.10.0
 
 Methods:
