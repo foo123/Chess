@@ -29,12 +29,12 @@ Methods:
 A user-defined evaluation function can be used, else a custom-crafted evaluation function is used which, although simple and fast, produces quite good results (see `tournament.js` for some tentative results).
 
 Related References:
-1. "An analysis of alpha-beta pruning", Donald E. Knuth, Ronald W. Moore
-2. "Best-first fixed-depth minimax algorithms", Aske Plaat, Jonathan Schaeffer, Wim Pijls, Arie de Bruin
-3. "Fuzzified Algorithm for Game Tree Search with Statistical and Analytical Evaluation", Dmitrijs Rutko
-4. "Bandit based Monte-Carlo Planning", Levente Kocsis and Csaba Szepesvári
-5. "Monte Carlo Tree Search: A Review of Recent Modifications and Applications", Maciej Świechowski, Konrad Godlewski, Bartosz Sawicki, Jacek Mańdziuk
-6. "Pruning Game Tree by Rollouts", Bojun Huang
-7. "A Rollout-Based Search Algorithm Unifying MCTS and Alpha-Beta", Hendrik Baier
+1. "An analysis of alpha-beta pruning", Donald E. Knuth, Ronald W. Moore, 1975
+2. "Best-first fixed-depth minimax algorithms", Aske Plaat, Jonathan Schaeffer, Wim Pijls, Arie de Bruin, 1996
+3. "Fuzzified Algorithm for Game Tree Search with Statistical and Analytical Evaluation", Dmitrijs Rutko, 2011
+4. "Bandit based Monte-Carlo Planning", Levente Kocsis and Csaba Szepesvári, 2006
+5. "Monte Carlo Tree Search: A Review of Recent Modifications and Applications", Maciej Świechowski, Konrad Godlewski, Bartosz Sawicki, Jacek Mańdziuk, 2021
+6. "Pruning Game Tree by Rollouts", Bojun Huang, 2015
+7. "A Rollout-Based Search Algorithm Unifying MCTS and Alpha-Beta", Hendrik Baier, 2016
 
 Additionally, copies of [stockfish.js](https://github.com/nmrugg/stockfish.js/) and [sunfish.js](https://github.com/foo123/sunfish.js/) chess engines are included, that either a human or an algorithm can play against.
