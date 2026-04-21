@@ -19,6 +19,7 @@ else
 
 var proto = 'prototype',
     stdMath = Math,
+    INF = Infinity,
     EMPTY = 0,
     WHITE = 1,
     BLACK = 2,
@@ -96,7 +97,7 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
 
     log = self.opts.log;
     stopped = self.opts.stopped || return_false;
-    time_limit = (BLACK === color ? self.opts.btime : self.opts.wtime) || self.opts.time || Infinity;
+    time_limit = (BLACK === color ? self.opts.btime : self.opts.wtime) || self.opts.time || INF;
 
     opts.algo = null != self.opts.algo ? String(self.opts.algo).toLowerCase() : "ab";
     opts.eval_pos = self.opts.eval_pos;
@@ -106,8 +107,9 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
     opts.depth = stdMath.max((+self.opts.depth) || 0, 1);
     opts.depthM = opts.depth;
 
-    opts.depthBNS = null != self.opts.bns ? +self.opts.bns : Infinity;
-    opts.depthMCTS = null != self.opts.mcts ? +self.opts.mcts : Infinity;
+    opts.depthBNS = null != self.opts.bns ? +self.opts.bns : INF;
+    opts.depthAB = null != self.opts.ab ? +self.opts.ab : INF;
+    opts.depthMCTS = null != self.opts.mcts ? +self.opts.mcts : INF;
     opts.depthUCT = (+self.opts.uct) || 0;
     opts.iterations = null != self.opts.iterations ? +self.opts.iterations : 100;
 
@@ -118,7 +120,7 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
 
     opts.iterativedeepening = self.opts.iterativedeepening;
     if (opts.iterativedeepening && ("mcts" !== opts.algo)) opts.depth = stdMath.min(2, opts.depthM); // iterative deepening
-    opts.heuristicpruning = "ab" === opts.algo && opts.depthMCTS > opts.depthM && opts.depthBNS > opts.depthM;
+    opts.heuristicpruning = "ab" === opts.algo && opts.depthMCTS > opts.depthM && opts.depthAB > opts.depthM && opts.depthBNS > opts.depthM;
 
     if (is_function(self.opts.cb))
     {
@@ -168,7 +170,7 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
 
         if ((1 < n) && (opts.depth <= opts.depthM))
         {
-            var i, curr, score, test, max = -Infinity,
+            var i, curr, score, test, max = -INF,
                 alpha = -opts.MATE, beta = opts.MATE,
                 mov, move, newcount, best_move, now, not_done;
 
@@ -217,7 +219,7 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
                         break;
 
                         default:
-                        score = alphabeta(opts, board, opponent, 2, -1, moves_next[i], curr, -Infinity, Infinity);
+                        score = alphabeta(opts, board, opponent, 2, -1, moves_next[i], curr, -INF, INF);
                         if (score > max) {max = score; best_move = [mov];}
                         else if (score === max) {best_move.push(mov);}
                         break;
@@ -281,7 +283,9 @@ function alphabeta(opts, board, color, depth, sgn, moves, curr, alpha, beta)
         if (tp.hi <= alpha) return tp.hi;
         alpha = stdMath.max(alpha, tp.lo);
         beta = stdMath.min(beta, tp.hi);
+        if (alpha >= beta) return 0 < sgn ? beta : alpha; // infeasible
     }
+    if (!tp) opts.tt[key] = tp = {lo:-INF, hi:INF, v:0, d:0};
 
     if (depth >= opts.depth || !moves.length)
     {
@@ -317,7 +321,7 @@ function alphabeta(opts, board, color, depth, sgn, moves, curr, alpha, beta)
         n = moves.length;
         if (0 < sgn)
         {
-            value = -Infinity;
+            value = -INF;
             a = alpha;
             for (i=0; i<n; ++i)
             {
@@ -333,7 +337,7 @@ function alphabeta(opts, board, color, depth, sgn, moves, curr, alpha, beta)
         }
         else
         {
-            value = Infinity;
+            value = INF;
             b = beta;
             for (i=0; i<n; ++i)
             {
@@ -350,27 +354,26 @@ function alphabeta(opts, board, color, depth, sgn, moves, curr, alpha, beta)
     }
 
     // store on transposition table
-    if (!tp) opts.tt[key] = tp = {lo:-Infinity, hi:Infinity, v:0, d:0};
-    if (tp.d < depth)
+    if (tp.d <= depth)
     {
+        if (value <= alpha)
+        {
+            // fail low result implies an upper bound
+            tp.hi = stdMath.min(tp.hi, value);
+        }
+        if (alpha < value && value < beta)
+        {
+            // accurate minimax value - will not occur if called with zero window
+            tp.lo = value;
+            tp.hi = value;
+        }
+        if (value >= beta)
+        {
+            // fail high result implies a lower bound
+            tp.lo = stdMath.max(tp.lo, value);
+        }
         tp.d = depth >= opts.depthMCTS ? opts.depthM : depth;
         tp.v = value;
-    }
-    if (value <= alpha)
-    {
-        // fail low result implies an upper bound
-        tp.hi = value;
-    }
-    if (alpha < value && value < beta)
-    {
-        // accurate minimax value - will not occur if called with zero window
-        tp.lo = value;
-        tp.hi = value;
-    }
-    if (value >= beta)
-    {
-        // fail high result implies a lower bound
-        tp.lo = value;
     }
 
     return value;
@@ -378,13 +381,13 @@ function alphabeta(opts, board, color, depth, sgn, moves, curr, alpha, beta)
 function mtdf(opts, board, color, depth, sgn, moves, curr)
 {
     // MTD(f) Search algorithm
-    var value = opts.f || 0, hi = Infinity, lo = -Infinity, beta, iter = 0;
+    var value = opts.f || 0, hi = INF, lo = -INF, beta, iter = 0;
     do {
         ++iter;
         beta = value === lo ? value+1 : value;
         value = alphabeta(opts, board, color, depth, sgn, moves, curr, beta-1, beta);
         if (value < beta) hi = value; else lo = value;
-    } while ((lo+2 < hi) || (iter < 200));
+    } while ((lo+2 < hi) || (iter < 500));
     return value;
 }
 function bns(opts, board, color, depth, sgn, moves, curr, alpha, beta)
@@ -410,7 +413,7 @@ function bns(opts, board, color, depth, sgn, moves, curr, alpha, beta)
             // next guess
             test = alpha + (beta - alpha) * /*stdMath.random()*/(count - 1) / count;
             newcount = 0;
-            value = -Infinity;
+            value = -INF;
             for (i=0; i<n; ++i)
             {
                 mov = moves[i];
@@ -453,17 +456,18 @@ function mcts(opts, board, color, depth, sgn, moves, curr)
 }
 function mcts_playout(opts, board, color, depth, sgn, moves, curr)
 {
-    var mov, move, moves_next, score, value, i, w, d, uct;
+    // Monte Carlo playout algorithm
+    var mov, move, moves_next, score, value, opponent = OPPOSITE[color], i, w, d, uct;
     if (depth >= opts.depthM || !moves.length)
     {
-        return opts.eval_pos ? opts.eval_pos(board, 0 > sgn ? OPPOSITE[color] : color) : curr;
+        return opts.eval_pos ? opts.eval_pos(board, 0 > sgn ? opponent : color) : curr;
     }
     if (depth+1 >= opts.depthM)
     {
         // return avg of all moves on remaining stages
         return moves.reduce(function(score, mov) {
             var move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
-            score += opts.eval_pos ? opts.eval_pos(board, 0 > sgn ? OPPOSITE[color] : color) : (curr + sgn*opts.eval_move(board, color, move, null));
+            score += opts.eval_pos ? opts.eval_pos(board, 0 > sgn ? opponent : color) : (curr + sgn*opts.eval_move(board, color, move, null));
             board.unmove(move);
             return score;
         }, 0)/moves.length;
@@ -488,9 +492,16 @@ function mcts_playout(opts, board, color, depth, sgn, moves, curr)
     }
     mov = moves[i];
     move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
-    moves_next = board.all_moves_for(OPPOSITE[color], true);
+    moves_next = board.all_moves_for(opponent, true);
     score = opts.eval_pos ? 0 : (curr + sgn*opts.eval_move(board, color, move, moves_next.length));
-    value = mcts_playout(opts, board, OPPOSITE[color], depth+1, -sgn, moves_next, score);
+    if (depth >= opts.depthAB)
+    {
+        value = alphabeta_rollout(opts, board, opponent, depth+1, -sgn, moves_next, score, -INF, INF);
+    }
+    else
+    {
+        value = mcts_playout(opts, board, opponent, depth+1, -sgn, moves_next, score);
+    }
     board.unmove(move);
     if (uct)
     {
@@ -503,11 +514,103 @@ function mcts_playout(opts, board, color, depth, sgn, moves, curr)
     }
     return value;
 }
+function alphabeta_rollout(opts, board, color, depth, sgn, moves, curr, alpha, beta)
+{
+    // Alpha Beta rollout algorithm
+    var n = moves.length, moves_next, mov, move,
+        score, value, feasible, v, vk, vs, key, tp,
+        opponent = OPPOSITE[color], a, b, i;
+
+    key = board.key();
+    tp = opts.tt[key];
+    if (tp)
+    {
+        // transposition found
+        if (tp.lo >= beta) return tp.lo;
+        if (tp.hi <= alpha) return tp.hi;
+        alpha = stdMath.max(alpha, tp.lo);
+        beta = stdMath.min(beta, tp.hi);
+        if (alpha >= beta) return 0 < sgn ? beta : alpha; // infeasible
+    }
+    if (!tp) opts.tt[key] = tp = {lo:-INF, hi:INF, v:0, d:0};
+
+    if (depth >= opts.depthM || !n)
+    {
+        value = opts.eval_pos ? opts.eval_pos(board, 0 > sgn ? opponent : color) : curr;
+    }
+    else if (depth >= opts.depthMCTS)
+    {
+        mov = moves[any_of(n)];
+        move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
+        moves_next = board.all_moves_for(opponent, true);
+        score = opts.eval_pos ? 0 : (curr + sgn*opts.eval_move(board, color, move, moves_next.length));
+        value = mcts_playout(opts, board, opponent, depth+1, -sgn, moves_next, score);
+        board.unmove(move);
+    }
+    else
+    {
+        feasible = null;
+        for (i=0; i<n; ++i)
+        {
+            mov = moves[i];
+            move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
+            vk = board.key();
+            vs = opts.tt[vk];
+            board.unmove(move);
+            if (!vs) vs = {lo:-INF, hi:INF, v:0, d:0};
+            a = stdMath.max(alpha, vs.lo);
+            b = stdMath.min(beta, vs.hi);
+            if (a < b)
+            {
+                feasible = {i:i, a:a, b:b}; // leftmost
+                break;
+            }
+        }
+        if (feasible)
+        {
+            mov = moves[feasible.i];
+            move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
+            moves_next = board.all_moves_for(opponent, true);
+            score = opts.eval_pos ? 0 : (curr + sgn*opts.eval_move(board, color, move, moves_next.length));
+            value = alphabeta_rollout(opts, board, opponent, depth+1, -sgn, moves_next, score, feasible.a, feasible.b);
+            board.unmove(move);
+        }
+        else
+        {
+            value = 0 < sgn ? beta : alpha; // infeasible
+        }
+    }
+
+    // store on transposition table
+    if (tp.d <= depth)
+    {
+        if (value <= alpha)
+        {
+            // fail low result implies an upper bound
+            tp.hi = stdMath.min(tp.hi, value);
+        }
+        if (alpha < value && value < beta)
+        {
+            // accurate minimax value - will not occur if called with zero window
+            tp.lo = value;
+            tp.hi = value;
+        }
+        if (value >= beta)
+        {
+            // fail high result implies a lower bound
+            tp.lo = stdMath.max(tp.lo, value);
+        }
+        tp.d = opts.depthM;
+        tp.v = value;
+    }
+
+    return value;
+}
 function UCB1(si)
 {
     // https://en.wikipedia.org/wiki/Upper_Confidence_Bound#UCB1-Tuned
     ++si.Ni;
-    return si.ni ? (si.mi + stdMath.sqrt(stdMath.min(0.25, si.vi)*stdMath.log(si.Ni-1)/si.ni)) : Infinity;
+    return si.ni ? (si.mi + stdMath.sqrt(stdMath.min(0.25, si.vi)*stdMath.log(si.Ni-1)/si.ni)) : INF;
 }
 function win(x, MATE)
 {
@@ -539,7 +642,7 @@ function eval_move(board, color, move, opponent_moves)
     switch (moved.type)
     {
         case 1: // KING, good to avoid corners
-        place_goodness = (0 === move[3] && 0 === move[4]) || (0 === move[3] && 7 === move[4]) || (7 === move[3] && 0 === move[4]) || (7 === move[3] && 7 === move[4]) ? -1 : 0;
+        place_goodness = (0 === move[3] && 0 === move[4]) || (0 === move[3] && 7 === move[4]) || (7 === move[3] && 0 === move[4]) || (7 === move[3] && 7 === move[4]) ? -2 : 0;
         break;
 
         case 4: // KNIGHT, good to avoid edges
