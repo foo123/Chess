@@ -1,6 +1,6 @@
 "use strict";
 
-// use: node tournament.js [stockfish|sunfish|ab|mtdf|bns|mcts|abbns|mtdfbns|abmcts|mtdfmcts] [stockfish|sunfish|ab|mtdf|bns|mcts|abbns|mtdfbns|abmcts|mtdfmcts] nmatches --show --deepen --depth=DEPTH --bns=BNS --mcts=MCTS --uct=UCT --iter=ITER --elo=ELO
+// use: node tournament.js [stockfish|sunfish|ab|mtdf|bns|mcts|mctsab|abmcts|abbns] [stockfish|sunfish|ab|mtdf|bns|mcts|mctsab|abmcts|abbns] nmatches --show --deepen --depth=DEPTH --bns=BNS --ab=AB --mcts=MCTS --uct=UCT --iter=ITER --elo=ELO
 
 // In tournament of 10 match(es) between STOCKFISH 16.1 (ELO1900) and SUNFISH 2023 result is 8 - 2 (min.moves 46,max.moves 128)
 // In tournament of 10 match(es) between STOCKFISH 18 (ELO1900) and SUNFISH 2023 result is 7 - 3 (min.moves 36,max.moves 86)
@@ -8,10 +8,13 @@
 // In tournament of 6 match(es) between AB-245-d and SUNFISH 2023 result is 2 - 4 (min.moves 18,max.moves 116)
 // In tournament of 6 match(es) between MTDf-245-d and SUNFISH 2023 result is 3 - 3 (min.moves 26,max.moves 128)
 // In tournament of 6 match(es) between MTDf-245-d and SUNFISH 2023 result is 2 - 4 (min.moves 32,max.moves 124)
+// In tournament of 6 match(es) between MTDf-245-d and SUNFISH 2023 result is 2 - 4 (min.moves 34,max.moves 104)
+// In tournament of 6 match(es) between MTDf-245-d and SUNFISH 2023 result is 1.5 - 4.5 (min.moves 18,max.moves 116)
 // In tournament of 6 match(es) between BNS-5 and SUNFISH 2023 result is 2.5 - 3.5 (min.moves 30,max.moves 132)
 // In tournament of 6 match(es) between BNS-6 and SUNFISH 2023 result is 2 - 4 (min.moves 20,max.moves 108)
 // In tournament of 6 match(es) between MCTS-25-10-500 and SUNFISH 2023 result is 3 - 3 (min.moves 26,max.moves 118)
 // In tournament of 6 match(es) between MCTS-25-10-500 and SUNFISH 2023 result is 4 - 2 (min.moves 32,max.moves 72)
+// In tournament of 6 match(es) between MCTS-25-10-500 and SUNFISH 2023 result is 3 - 3 (min.moves 38,max.moves 94)
 
 const args = (function parse_args() {
     const args = {
@@ -22,6 +25,7 @@ const args = (function parse_args() {
         DEEPEN:         false,
         DEPTH:          3,
         BNS:            Infinity,
+        AB:             Infinity,
         MCTS:           Infinity,
         UCT:            0,
         ITER:           100,
@@ -33,10 +37,9 @@ const args = (function parse_args() {
         'mtdf',
         'bns',
         'mcts',
-        'abbns',
-        'mtdfbns',
         'abmcts',
-        'mtdfmcts',
+        'mctsab',
+        'abbns',
         'sunfish',
         'stockfish'
     ];
@@ -56,9 +59,10 @@ const args = (function parse_args() {
     while (process.argv.length > i)
     {
         if ('--show' === process.argv[i].toLowerCase()) args.SHOW = true;
-        if ('--deepen' === process.argv[i].slice(0, 8).toLowerCase()) args.DEEPEN = true;
+        if ('--deepen' === process.argv[i].toLowerCase()) args.DEEPEN = true;
         if ('--depth=' === process.argv[i].slice(0, 8).toLowerCase()) args.DEPTH = parseInt(process.argv[i].slice(8).trim()) || 0;
         if ('--bns=' === process.argv[i].slice(0, 6).toLowerCase()) args.BNS = parseInt(process.argv[i].slice(6).trim()) || 0;
+        if ('--ab=' === process.argv[i].slice(0, 5).toLowerCase()) args.AB = parseInt(process.argv[i].slice(5).trim()) || 0;
         if ('--mcts=' === process.argv[i].slice(0, 7).toLowerCase()) args.MCTS = parseInt(process.argv[i].slice(7).trim()) || 0;
         if ('--uct=' === process.argv[i].slice(0, 6).toLowerCase()) args.UCT = parseInt(process.argv[i].slice(6).trim()) || 0;
         if ('--iter=' === process.argv[i].slice(0, 7).toLowerCase()) args.ITER = parseInt(process.argv[i].slice(7).trim()) || 100;
@@ -80,10 +84,9 @@ const opts = {
     mtdf:      {algo:"mtdf", iterativedeepening:true, depth:245, time:10000, log:args.SHOW},
     bns:       {algo:"bns", iterativedeepening:args.DEEPEN, depth:args.DEPTH, time:10000, log:args.SHOW},
     mcts:      {algo:"mcts", iterations:args.ITER, uct:args.UCT, depth:args.DEPTH, time:10000, log:args.SHOW},
+    mctsab:    {algo:"mcts", iterations:args.ITER, uct:args.UCT, mcts:args.MCTS, ab:args.AB, depth:args.DEPTH, time:10000, log:args.SHOW},
+    abmcts:    {algo:"ab", iterations:args.ITER, uct:args.UCT, mcts:args.MCTS, depth:args.DEPTH, time:10000, log:args.SHOW},
     abbns:     {algo:"ab", bns:args.BNS, depth:args.DEPTH, time:10000, log:args.SHOW},
-    mtdfbns:   {algo:"mtdf", bns:args.BNS, depth:args.DEPTH, time:10000, log:args.SHOW},
-    abmcts:    {algo:"ab", mcts:args.MCTS, uct:args.UCT, iterations:args.ITER, depth:args.DEPTH, time:10000, log:args.SHOW},
-    mtdfmcts:  {algo:"mtdf", mcts:args.MCTS, uct:args.UCT, iterations:args.ITER, depth:args.DEPTH, time:10000, log:args.SHOW},
     sunfish:   {depth:245, time:10000},
     stockfish: {elo:args.ELO, depth:245, time:10000}
 };
@@ -97,13 +100,11 @@ const init = {
     },
     mcts: function() {
     },
-    abbns: function() {
-    },
-    mtdfbns: function() {
+    mctsab: function() {
     },
     abmcts: function() {
     },
-    mtdfmcts: function() {
+    abbns: function() {
     },
     sunfish: function() {
         engine.sunfish.sendCMD('ucinewgame');
@@ -127,17 +128,14 @@ const play = {
     mcts: function(game, then) {
         then((new ChessSearch.HybridSearch(game, opts.mcts)).bestMove(game.getBoard().turn));
     },
-    abbns: function(game, then) {
-        then((new ChessSearch.HybridSearch(game, opts.abbns)).bestMove(game.getBoard().turn));
-    },
-    mtdfbns: function(game, then) {
-        then((new ChessSearch.HybridSearch(game, opts.mtdfbns)).bestMove(game.getBoard().turn));
+    mctsab: function(game, then) {
+        then((new ChessSearch.HybridSearch(game, opts.mctsab)).bestMove(game.getBoard().turn));
     },
     abmcts: function(game, then) {
         then((new ChessSearch.HybridSearch(game, opts.abmcts)).bestMove(game.getBoard().turn));
     },
-    mtdfmcts: function(game, then) {
-        then((new ChessSearch.HybridSearch(game, opts.mtdfmcts)).bestMove(game.getBoard().turn));
+    abbns: function(game, then) {
+        then((new ChessSearch.HybridSearch(game, opts.abbns)).bestMove(game.getBoard().turn));
     },
     sunfish: function(game, then) {
         engine.sunfish.sendCMD('position startpos moves ' + game.getMovesUpToNow().join(' '));
@@ -154,10 +152,9 @@ const player = {
     mtdf:       'MTDf-'+String(opts.mtdf.depth)+(opts.mtdf.iterativedeepening ? '-d' : ''),
     bns:        'BNS-'+String(opts.bns.depth)+(opts.bns.iterativedeepening ? '-d' : ''),
     mcts:       'MCTS-'+String(opts.mcts.depth)+'-'+String(opts.mcts.uct)+'-'+String(opts.mcts.iterations),
+    mctsab:     'MCTSAB-'+String(opts.mctsab.depth)+'-'+String(opts.mctsab.uct)+'-'+String(opts.mctsab.mcts)+'-'+String(opts.mctsab.ab)+'-'+String(opts.mctsab.iterations),
+    abmcts:     'ABMCTS-'+String(opts.abmcts.depth)+'-'+String(opts.abmcts.uct)+'-'+String(opts.abmcts.mcts)+'-'+String(opts.abmcts.iterations),
     abbns:      'ABBNS-'+String(opts.abbns.depth)+'-'+String(opts.abbns.bns),
-    mtdfbns:    'MTDBNS-'+String(opts.mtdfbns.depth)+'-'+String(opts.mtdfbns.bns),
-    abmcts:     'ABMCTS-'+String(opts.abmcts.depth)+'-'+String(opts.abmcts.mcts)+'-'+String(opts.abmcts.uct)+'-'+String(opts.abmcts.iterations),
-    mtdfmcts:   'MTDMCTS-'+String(opts.mtdfmcts.depth)+'-'+String(opts.mtdfmcts.mcts)+'-'+String(opts.mtdfmcts.uct)+'-'+String(opts.mtdfmcts.iterations),
     sunfish:    'SUNFISH 2023',
     stockfish:  'STOCKFISH 18 (ELO'+String(opts.stockfish.elo)+')'
 };
@@ -168,15 +165,25 @@ function tournament(match, matches_won_by_p1, min_plies, max_plies, done)
     {
         function play_next(move)
         {
+            let output;
             if (move)
             {
                 ++plies;
-                if (args.SHOW) console.log(String(plies)+'. '+game.whoseTurn().slice(0,1)+':'+move.from+move.to+(move.promotion||''));
+                output = String(plies)+'. ' + game.whoseTurn().slice(0,1) + ':' + move.from + move.to + (move.promotion || '');
                 game.doMove(move.from, move.to, move.promotion);
+                if (args.SHOW)
+                {
+                    output += game.isCheck() ? ' (check)' : '';
+                    console.log(output);
+                }
             }
             else
             {
-                if (args.SHOW) console.log(String(plies+1)+'. '+game.whoseTurn().slice(0,1)+':nomove');
+                if (args.SHOW)
+                {
+                    output = String(plies+1) + '. ' + game.whoseTurn().slice(0,1) + ':nomove';
+                    console.log(output);
+                }
                 game.noMove();
             }
             if (game.isGameOver())
