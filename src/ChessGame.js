@@ -1,6 +1,7 @@
 /**
 *  ChessGame
 *  A class for the game of chess
+*  https://github.com/foo123/Chess
 *  @VERSION: 1.0.0
 *
 **/

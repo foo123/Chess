@@ -1,6 +1,7 @@
 /**
 *  ChessBoard
 *  A chess board for HTML
+*  https://github.com/foo123/Chess
 *  @VERSION: 1.0.0
 *
 **/

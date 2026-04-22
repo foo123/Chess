@@ -5,16 +5,22 @@
 // In tournament of 10 match(es) between STOCKFISH 16.1 (ELO1900) and SUNFISH 2023 result is 8 - 2 (min.moves 46,max.moves 128)
 // In tournament of 10 match(es) between STOCKFISH 18 (ELO1900) and SUNFISH 2023 result is 7 - 3 (min.moves 36,max.moves 86)
 
+// In tournament of 6 match(es) between STOCKFISH 18 (ELO1900) and SUNFISH 2023 result is 6 - 0 (min.moves 33,max.moves 223)
+
 // In tournament of 6 match(es) between AB-245-d and SUNFISH 2023 result is 2 - 4 (min.moves 18,max.moves 116)
 // In tournament of 6 match(es) between MTDf-245-d and SUNFISH 2023 result is 3 - 3 (min.moves 26,max.moves 128)
-// In tournament of 6 match(es) between MTDf-245-d and SUNFISH 2023 result is 2 - 4 (min.moves 32,max.moves 124)
-// In tournament of 6 match(es) between MTDf-245-d and SUNFISH 2023 result is 2 - 4 (min.moves 34,max.moves 104)
-// In tournament of 6 match(es) between MTDf-245-d and SUNFISH 2023 result is 1.5 - 4.5 (min.moves 18,max.moves 116)
+// In tournament of 6 match(es) between MTDf-245-d and SUNFISH 2023 result is 2.5 - 3.5 (min.moves 34,max.moves 70)
 // In tournament of 6 match(es) between BNS-5 and SUNFISH 2023 result is 2.5 - 3.5 (min.moves 30,max.moves 132)
 // In tournament of 6 match(es) between BNS-6 and SUNFISH 2023 result is 2 - 4 (min.moves 20,max.moves 108)
 // In tournament of 6 match(es) between MCTS-25-10-500 and SUNFISH 2023 result is 3 - 3 (min.moves 26,max.moves 118)
 // In tournament of 6 match(es) between MCTS-25-10-500 and SUNFISH 2023 result is 4 - 2 (min.moves 32,max.moves 72)
 // In tournament of 6 match(es) between MCTS-25-10-500 and SUNFISH 2023 result is 3 - 3 (min.moves 38,max.moves 94)
+// In tournament of 6 match(es) between MCTS-25-7-500 and SUNFISH 2023 result is 3 - 3 (min.moves 20,max.moves 78)
+
+// In tournament of 6 match(es) between MCTS-25-10-500 and MTDf-245-d result is 3 - 3 (min.moves 62,max.moves 117)
+
+// In tournament of 6 match(es) between MTDf-245-d and STOCKFISH 18 (ELO1900) result is 0 - 6 (min.moves 21,max.moves 78)
+// In tournament of 6 match(es) between MCTS-25-10-500 and STOCKFISH 18 (ELO1900) result is 0 - 6 (min.moves 40,max.moves 108)
 
 const args = (function parse_args() {
     const args = {
@@ -169,7 +175,10 @@ function tournament(match, matches_won_by_p1, min_plies, max_plies, done)
             if (move)
             {
                 ++plies;
-                output = String(plies)+'. ' + game.whoseTurn().slice(0,1) + ':' + move.from + move.to + (move.promotion || '');
+                if (args.SHOW)
+                {
+                    output = String(plies)+'. ' + game.whoseTurn().slice(0,1) + ':' + move.from + move.to + (move.promotion || '');
+                }
                 game.doMove(move.from, move.to, move.promotion);
                 if (args.SHOW)
                 {
