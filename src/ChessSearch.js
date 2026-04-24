@@ -624,7 +624,7 @@ function eval_move(board, color, move, opponent_moves)
     // O(1)
     var opK = board.king[COLOR[OPPOSITE[color]]],
         f1 = 1, f2 = 0.12, f3 = 0.12, f4 = 20, f5 = 0.1;
-    if (0 === opponent_moves) return board.threatened_at_by(opK.y, opK.x, color) ? MATE : DRAW;
+    if (0 === opponent_moves) return !board.is_king_present(OPPOSITE[color]) || board.threatened_at_by(opK.y, opK.x, color) ? MATE : DRAW;
     var moved = move[0], placed = board._[move[3]][move[4]], taken = move[5],
         d1 = stdMath.abs(move[2]-opK.x)+stdMath.abs(move[1]-opK.y),
         d2 = stdMath.abs(move[4]-opK.x)+stdMath.abs(move[3]-opK.y),
@@ -642,7 +642,10 @@ function eval_move(board, color, move, opponent_moves)
         break;
 
         case 4: // KNIGHT, good to avoid edges
-        place_goodness = -1 < [0, 7].indexOf(move[4]) || -1 < [0, 7].indexOf(move[3]) ? -1 : 0;
+        if (move[3] < 2) place_goodness += -(2-move[3]);
+        else if (move[3] > 5) place_goodness += -(move[3]-5);
+        if (move[4] < 2) place_goodness += -(2-move[4]);
+        else if (move[4] > 5) place_goodness += -(move[4]-5);
         break;
 
         case 6: // PAWN, good to move forward
@@ -695,7 +698,7 @@ function best_n_moves(n, moves, board, player)
 }
 function arg_max(values, type)
 {
-    var iv = 0, v = values[iv], vi, i = 1, n = values.length;
+    var iv = [0], v = values[iv[0]], vi, i = 1, n = values.length;
     if ("min" === type)
     {
         if (!isFinite(v)) v = -v;
@@ -703,10 +706,14 @@ function arg_max(values, type)
         {
             vi = values[i];
             if (!isFinite(vi)) vi = -vi;
-            if (vi < v)
+            if (vi === v)
+            {
+                iv.push(i);
+            }
+            else if (vi < v)
             {
                 v = vi;
-                iv = i;
+                iv = [i];
             }
         }
     }
@@ -715,14 +722,18 @@ function arg_max(values, type)
         for (; i<n; ++i)
         {
             vi = values[i];
-            if (vi > v)
+            if (vi === v)
+            {
+                iv.push(i);
+            }
+            else if (vi > v)
             {
                 v = vi;
-                iv = i;
+                iv = [i];
             }
         }
     }
-    return iv;
+    return random_choice(iv);
 }
 function any_of(N)
 {

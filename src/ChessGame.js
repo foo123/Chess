@@ -597,6 +597,10 @@ Board[proto] = {
     },
     threatened_at_by: function(y, x, col) {
         var board = this, i, j, p;
+        if (col === board._[y][x].color)
+        {
+            return false;
+        }
         if (
         (BLACK === col && y+1 < 8 && x-1 >= 0 && PAWN === board._[y+1][x-1].type && col === board._[y+1][x-1].color) ||
         (BLACK === col && y+1 < 8 && x+1 < 8 && PAWN === board._[y+1][x+1].type && col === board._[y+1][x+1].color) ||
@@ -675,9 +679,16 @@ Board[proto] = {
         }
         return false;
     },
+    is_king_present: function(color) {
+        var board = this,
+            K = board.king[COLOR[color]],
+            piece = K ? board._[K.y][K.x] : NONE;
+        return (KING === piece.type) && (color === piece.color);
+    },
     is_king_trapped: function(color, completely) {
         var board = this, K = board.king[COLOR[color]], /*piece = K.pieces,*/ y, x, i, n, m, move, king_threatened;
-        if (0 < board.possible_moves_at(K.y, K.x).length) return false;
+        if (!board.is_king_present(color)) return true;
+        if (0 < board.possible_moves_at(K.y, K.x, false, true).length) return false;
         if (false !== completely)
         {
             /*while (piece)
@@ -698,10 +709,11 @@ Board[proto] = {
         }
         return true;
     },
-    possible_moves_at: function(y, x, with_promotions) {
+    possible_moves_at: function(y, x, with_promotions, is_king_present) {
         var board = this, piece = board._[y][x],
             moves, type, color, p, c, i, K;
-        if (!piece.type) return [];
+        if (null == is_king_present) is_king_present = board.is_king_present(WHITE) && board.is_king_present(BLACK);
+        if (!piece.type || !is_king_present) return [];
         moves = new Array(64);
         moves.cnt = 0;
         color = piece.color;
@@ -909,6 +921,7 @@ Board[proto] = {
     all_moves_for: function(color, with_promotions, except) {
         except = except || 0;
         var board = this, K = board.king[COLOR[color]], /*piece = K.pieces,*/ moves = [], m, x, y;
+        if (!board.is_king_present(WHITE) || !board.is_king_present(BLACK)) return [];
         /*while (piece)
         {
             if (piece.type !== except)
@@ -929,7 +942,7 @@ Board[proto] = {
             {
                 if (color === board._[y][x].color && board._[y][x].type !== except)
                 {
-                    m = board.possible_moves_at(y, x, with_promotions);
+                    m = board.possible_moves_at(y, x, with_promotions, true);
                     if (m.length) moves.push.apply(moves, m.map(function(m) {return [y, x, m[0], m[1], m[2]||0];}));
                 }
             }
@@ -1083,11 +1096,14 @@ function ChessGame(options)
         if (null == kt) kt = board.is_king_trapped(board.turn, true);
         return kt;
     };
+    self.isKingCaptured = function() {
+        return !board.is_king_present(board.turn);
+    };
     self.isCheckMate = function() {
-        return self.isCheck() && self.isKingTrapped();
+        return self.isKingCaptured() || (self.isCheck() && self.isKingTrapped());
     };
     self.isStaleMate = function() {
-        return !self.isCheck() && self.isKingTrapped();
+        return !self.isKingCaptured() && !self.isCheck() && self.isKingTrapped();
     };
     self.idleMovesGreaterThan = function(count) {
         /*
