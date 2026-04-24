@@ -8,10 +8,14 @@
 // In tournament of 6 match(es) between STOCKFISH 18 (ELO1900) and SUNFISH 2023 result is 6 - 0 (min.moves 33,max.moves 223)
 
 // In tournament of 6 match(es) between AB-245-d and SUNFISH 2023 result is 2 - 4 (min.moves 34,max.moves 128)
-// In tournament of 6 match(es) between MTDf-245-d and SUNFISH 2023 result is 1 - 5 (min.moves 44,max.moves 76)
-// In tournament of 6 match(es) between BNS-6 and SUNFISH 2023 result is 1 - 5 (min.moves 14,max.moves 116)
+// In tournament of 6 match(es) between AB-245-d and SUNFISH 2023 result is 1 - 5 (min.moves 32,max.moves 102)
+// In tournament of 6 match(es) between MTDf-245-d and SUNFISH 2023 result is 2 - 4 (min.moves 32,max.moves 93)
+// In tournament of 6 match(es) between BNS-6 and SUNFISH 2023 result is 1 - 5 (min.moves 26,max.moves 124)
+// In tournament of 6 match(es) between BNS-7 and SUNFISH 2023 result is 1 - 5 (min.moves 8,max.moves 161)
 // In tournament of 6 match(es) between MCTS-15-10-500 and SUNFISH 2023 result is 3.5 - 2.5 (min.moves 24,max.moves 64)
+// In tournament of 6 match(es) between MCTS-15-10-500 and SUNFISH 2023 result is 3 - 3 (min.moves 20,max.moves 110)
 // In tournament of 6 match(es) between MCTS-25-10-500 and SUNFISH 2023 result is 3.5 - 2.5 (min.moves 14,max.moves 146)
+// In tournament of 6 match(es) between MCTS-25-10-500 and SUNFISH 2023 result is 3.5 - 2.5 (min.moves 32,max.moves 82)
 // In tournament of 6 match(es) between MCTS-35-10-700 and SUNFISH 2023 result is 3.5 - 2.5 (min.moves 54,max.moves 122)
 
 const args = (function parse_args() {

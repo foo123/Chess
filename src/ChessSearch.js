@@ -85,10 +85,10 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
         board = self.game.getBoard().clone(),
         opponent = OPPOSITE[color],
         moves = shuffle(board.all_moves_for(color, true)),
+        best_moves = moves,
         n = moves.length,
         moves_next = new Array(n),
         scores = new Array(n),
-        best_moves = [],
         opts = {},
         log, stopped,
         start = 0,
@@ -173,12 +173,12 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
         {
             var i, score_up_to_now, score, test, max = -INF,
                 alpha = -opts.MATE, beta = opts.MATE,
-                mov, move, newcount, best_move, now, not_done;
+                mov, move, count = n, newcount, best_move, now, not_done;
 
             do {
                 not_done = false;
                 best_move = [];
-                test = alpha + (beta - alpha) * (n - 1) / n;
+                test = alpha + (beta - alpha) * (count - 1) / count;
                 newcount = 0;
 
                 for (i=0; i<n; ++i)
@@ -187,7 +187,7 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
                     {
                         // time limit exceeded
                         if (log) console.log('time:'+stdMath.floor(perf.now() - start)+', limit:'+time_limit);
-                        return ret(board.encode_move(random_choice(best_move.length && ((i+1 >= 0.75*n) || !best_moves.length) ? best_move : (best_moves.length ? best_moves : moves), null)));
+                        return ret(board.encode_move(random_choice(best_move.length && ((i+1 >= 0.75*n) || (moves === best_moves)) ? best_move : best_moves, null)));
                     }
 
                     mov = moves[i];
@@ -233,9 +233,10 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
                 if ("bns" === opts.algo)
                 {
                     // update alpha-beta range
-                    if (newcount > n/2)
+                    if (newcount > 1)
                     {
                         alpha = test > alpha ? test : (test+1);
+                        count = newcount;
                     }
                     else
                     {
@@ -245,7 +246,7 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
                 }
             } while (not_done);
 
-            best_moves = best_move;
+            if (best_move.length) best_moves = best_move;
 
             if (has_timelimit)
             {
@@ -264,7 +265,7 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
             }
         }
 
-        return ret(board.encode_move(random_choice(best_moves.length ? best_moves : moves, null)));
+        return ret(board.encode_move(random_choice(best_moves, null)));
     });
 };
 
@@ -381,12 +382,19 @@ function mtdf(opts, board, color, depth, sgn, moves, score_up_to_now)
 {
     // MTD(f) Search algorithm
     var value = opts.f || 0, lo = -INF, hi = INF, beta, iter = 0;
-    do {
-        ++iter;
-        beta = value === lo ? value+1 : value;
-        value = alphabeta(opts, board, color, depth, sgn, moves, score_up_to_now, beta-1, beta);
-        if (value < beta) hi = value; else lo = value;
-    } while ((lo+2 < hi) || (iter < 500));
+    if (!moves.length)
+    {
+        value = opts.eval_pos ? opts.eval_pos(board, 0 > sgn ? OPPOSITE[color] : color) : score_up_to_now;
+    }
+    else
+    {
+        do {
+            ++iter;
+            beta = value === lo ? value+1 : value;
+            value = alphabeta(opts, board, color, depth, sgn, moves, score_up_to_now, beta-1, beta);
+            if (value < beta) hi = value; else lo = value;
+        } while ((lo+2 < hi) || (iter < 500));
+    }
     return value;
 }
 function bns(opts, board, color, depth, sgn, moves, score_up_to_now, alpha, beta)
@@ -428,16 +436,16 @@ function bns(opts, board, color, depth, sgn, moves, score_up_to_now, alpha, beta
                 }
             }
             // update alpha-beta range
-            if (newcount > count/2)
+            // update number of sub-trees that exceeds separation test value
+            if (newcount > 1)
             {
                 alpha = test > alpha ? test : (test+1);
+                count = newcount;
             }
             else
             {
                 beta = test < beta ? test : (test-1);
             }
-            // update number of sub-trees that exceeds separation test value
-            //count = 0 < newcount ? newcount : count;
         } while (!((alpha+2 > beta) || (1 === newcount)));
     }
     return value;
@@ -446,11 +454,18 @@ function mcts(opts, board, color, depth, sgn, moves, score_up_to_now)
 {
     // Monte Carlo Tree Search with UCT algorithm
     var i, iter, score, value;
-    for (score=0,i=0,iter=opts.iterations; i<iter; ++i)
+    if (!moves.length)
     {
-        score += mcts_playout(opts, board, color, depth, sgn, moves, score_up_to_now);
+        value = opts.eval_pos ? opts.eval_pos(board, 0 > sgn ? OPPOSITE[color] : color) : score_up_to_now;
     }
-    value = score / iter;
+    else
+    {
+        for (score=0,i=0,iter=opts.iterations; i<iter; ++i)
+        {
+            score += mcts_playout(opts, board, color, depth, sgn, moves, score_up_to_now);
+        }
+        value = score / iter;
+    }
     return value;
 }
 function mcts_playout(opts, board, color, depth, sgn, moves, score_up_to_now)
@@ -623,7 +638,8 @@ function eval_move(board, color, move, opponent_moves)
     */
     // O(1)
     var opK = board.king[COLOR[OPPOSITE[color]]],
-        f1 = 1, f2 = 0.12, f3 = 0.12, f4 = 20, f5 = 0.1;
+        f1 = 1, f2 = board.halfMoves < 15 ? 0.12 : 0,
+        f3 = board.halfMoves < 20 ? 0 : 0.12, f4 = 0.1;
     if (0 === opponent_moves) return !board.is_king_present(OPPOSITE[color]) || board.threatened_at_by(opK.y, opK.x, color) ? MATE : DRAW;
     var moved = move[0], placed = board._[move[3]][move[4]], taken = move[5],
         d1 = stdMath.abs(move[2]-opK.x)+stdMath.abs(move[1]-opK.y),
@@ -632,7 +648,7 @@ function eval_move(board, color, move, opponent_moves)
         promotion_gain = VALUE[placed.type-1]-VALUE[moved.type-1],
         capture_gain = !taken || !taken.type ? 0 : VALUE[taken.type-1],
         material_gain = promotion_gain + capture_gain,
-        opponent_mobility = board.halfMoves < f4 ? 0 : (opponent_moves || 0),
+        opponent_mobility = opponent_moves || 0,
         place_goodness = 0
     ;
     switch (moved.type)
@@ -652,7 +668,7 @@ function eval_move(board, color, move, opponent_moves)
         place_goodness = /*stdMath.abs(move[3]-move[1])*/1;
         break;
     }
-    return f1*material_gain + f2*close_to_opposite_king - f3*opponent_mobility + f5*place_goodness;
+    return f1*material_gain + f2*close_to_opposite_king - f3*opponent_mobility + f4*place_goodness;
 }
 eval_move.MATE = MATE;
 function eval_pos(board, color)
