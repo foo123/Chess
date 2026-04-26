@@ -657,45 +657,58 @@ function win(x, MATE)
 }
 
 // custom evaluation functions ------------------
-var MATE = 1000 + 10*100, DRAW = MATE/2, VALUE = [MATE, 100, 10, 10, 20, 1];
+var MATE = 1000 + 10*100;
+function piece_square_value(board, p, y, x)
+{
+    var VALUE = [MATE, 100, 10, 10, 20, 1], value = VALUE[p.type-1], opK;
+    switch (p.type)
+    {
+        case 1: // KING, good to avoid corners
+        value += (0 === y && 0 === x) || (0 === y && 7 === x) || (7 === y && 0 === x) || (7 === y && 7 === x) ? -10 : 0;
+        break;
+
+        case 4: // KNIGHT, good to avoid edges
+        if (y < 2) value += -2*(2-y);
+        else if (y > 5) value += -2*(y-5);
+        if (x < 2) value += -2*(2-x);
+        else if (x > 5) value += -2*(x-5);
+        break;
+
+        case 6: // PAWN, good to move forward, and close to opposite king
+        opK = board.king[COLOR[OPPOSITE[p.color]]];
+        value += (BLACK === p.color ? (y > 0 ? 7-y : 0) : (y < 7 ? y : 0))/4;
+        if (BLACK === p.color && opK.y <= y)
+        {
+            value += 2 >= stdMath.abs(opK.x-x) ? 0.25*(3-stdMath.abs(opK.x-x)) : 0;
+        }
+        if (WHITE === p.color && opK.y >= y)
+        {
+            value += 2 >= stdMath.abs(opK.x-x) ? 0.25*(3-stdMath.abs(opK.x-x)) : 0;
+        }
+        break;
+    }
+    return value;
+}
 function eval_move(board, color, move, opponent_moves)
 {
     /*
     move evaluation function: a) material gain, b) closeness to opposite king, c) opponent mobility, ..
     */
     // O(1)
-    var opK = board.king[COLOR[OPPOSITE[color]]],
-        f1 = 1, f2 = board.halfMoves < 15 ? 0.12 : 0,
-        f3 = board.halfMoves < 20 ? 0 : 0.12, f4 = 0.1;
-    if (0 === opponent_moves) return !board.is_king_present(OPPOSITE[color]) || board.threatened_at_by(opK.y, opK.x, color) ? MATE : DRAW;
-    var moved = move[0], placed = board._[move[3]][move[4]], taken = move[5],
-        d1 = stdMath.abs(move[2]-opK.x)+stdMath.abs(move[1]-opK.y),
-        d2 = stdMath.abs(move[4]-opK.x)+stdMath.abs(move[3]-opK.y),
-        close_to_opposite_king = d1-d2,//(d2 > d1 ? (-d2) : (d2 < d1 ? (16-d2) : 0)),
-        promotion_gain = VALUE[placed.type-1]-VALUE[moved.type-1],
-        capture_gain = !taken || !taken.type ? 0 : VALUE[taken.type-1],
-        material_gain = promotion_gain + capture_gain,
-        opponent_mobility = opponent_moves || 0,
-        place_goodness = 0
+    var f1 = 1, f2 = board.halfMoves < 15 ? 0.12 : 0, f3 = board.halfMoves < 20 ? 0 : 0.12,
+        opK = board.king[COLOR[OPPOSITE[color]]];
+    if (0 === opponent_moves) return !board.is_king_present(OPPOSITE[color]) || board.threatened_at_by(opK.y, opK.x, color) ? MATE : (MATE/2);
+    var moved = move[0], taken = move[5],
+        placed = board._[move[3]][move[4]],
+        capture_gain = !taken || !taken.type ? 0 : piece_square_value(board, taken, move[3], move[4]),
+        position_gain = piece_square_value(board, placed, move[3], move[4]) - piece_square_value(board, moved, move[1], move[2]),
+        material_gain = position_gain + capture_gain,
+        d1 = stdMath.abs(move[2]-opK.x) + stdMath.abs(move[1]-opK.y),
+        d2 = stdMath.abs(move[4]-opK.x) + stdMath.abs(move[3]-opK.y),
+        close_to_opposite_king = d1 - d2,//(d2 > d1 ? (-d2) : (d2 < d1 ? (16-d2) : 0)),
+        opponent_mobility = opponent_moves || 0
     ;
-    switch (moved.type)
-    {
-        case 1: // KING, good to avoid corners
-        place_goodness = (0 === move[3] && 0 === move[4]) || (0 === move[3] && 7 === move[4]) || (7 === move[3] && 0 === move[4]) || (7 === move[3] && 7 === move[4]) ? -2 : 0;
-        break;
-
-        case 4: // KNIGHT, good to avoid edges
-        if (move[3] < 2) place_goodness += -(2-move[3]);
-        else if (move[3] > 5) place_goodness += -(move[3]-5);
-        if (move[4] < 2) place_goodness += -(2-move[4]);
-        else if (move[4] > 5) place_goodness += -(move[4]-5);
-        break;
-
-        case 6: // PAWN, good to move forward
-        place_goodness = /*stdMath.abs(move[3]-move[1])*/1;
-        break;
-    }
-    return f1*material_gain + f2*close_to_opposite_king - f3*opponent_mobility + f4*place_goodness;
+    return f1*material_gain + f2*close_to_opposite_king - f3*opponent_mobility;
 }
 eval_move.MATE = MATE;
 function eval_pos(board, color)
