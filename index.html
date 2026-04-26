@@ -1221,7 +1221,7 @@ function Chess()
         addEvent(container, 'click', function(evt) {
             evt.preventDefault && evt.preventDefault();
             if (computer_plays) return false;
-            var square = evt.target.closest('.square'), pos1, pos2, piece, m;
+            let square = evt.target.closest('.square'), pos1, pos2, piece, m;
             if (active_piece)
             {
                 if (active_piece === square)
