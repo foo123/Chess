@@ -13,6 +13,7 @@
 // In 6 matches of MCTS-35-4-500 vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 30,max.plies 124)
 // In 6 matches of MCTS-15-6-500 vs SUNFISH 2023 result is 3 - 3 (2 draws,min.plies 34,max.plies 130)
 // In 6 matches of MCTS-25-6-500 vs SUNFISH 2023 result is 2 - 4 (2 draws,min.plies 36,max.plies 113)
+// In 6 matches of ABMCTS-25-5-3-100 vs SUNFISH 2023 result is 3 - 3 (4 draws,min.plies 50,max.plies 130)
 
 const args = (function parse_args() {
     const args = {

@@ -192,7 +192,6 @@ body {
     --img: url(./assets/img/undo-bt.svg);
     --aspect-ratio: calc(1 / 1);
 }
-#controls button[data-action="fen"],
 #controls button[data-action="redo"] {
     --img: url(./assets/img/redo-bt.svg);
     --aspect-ratio: calc(1 / 1);
@@ -402,12 +401,6 @@ body {
     text-align: center;
     transform: translate(0, calc(50% - var(--mrg) / 3));
 }
-.chessboard-numbers.top span {
-    transform: rotate(180deg);
-}
-.chessboard-numbers.right span {
-    transform: rotate(180deg) translate(0, calc(50% - var(--mrg) / 3));
-}
 .chessboard-squares {
     position: relative;
     display: block;
@@ -530,6 +523,14 @@ body {
     transform-origin: center center;
     transform: rotate(180deg);
 }
+.chessboard.computer-human .chessboard-numbers:not(.left):not(.right) span,
+.chessboard.human-human.b-turn .chessboard-numbers:not(.left):not(.right) span {
+    transform: rotate(180deg);
+}
+.chessboard.computer-human .chessboard-numbers:not(.top):not(.bottom) span,
+.chessboard.human-human.b-turn .chessboard-numbers:not(.top):not(.bottom) span {
+    transform: rotate(180deg) translate(0, calc(50% - var(--mrg) / 3));
+}
 @media (max-width:800px) {
 .chessboard.human-human.b-turn {
     transform-origin: center center;
@@ -539,8 +540,18 @@ body {
     transform-origin: center center;
     transform: rotate(180deg);
 }
+.chessboard.human-human.b-turn .chessboard-numbers:not(.left):not(.right) span {
+    transform: rotate(180deg);
+}
+.chessboard.human-human.b-turn .chessboard-numbers:not(.top):not(.bottom) span {
+    transform: rotate(180deg) translate(0, calc(50% - var(--mrg) / 3));
+}
 }
 
+#forkongithub {
+    display: inline-block;
+    margin-bottom: 10px;
+}
 #forkongithub  a {
     background: #aa0000;
     color: #fff;
@@ -584,6 +595,7 @@ body {
         width: 200px;
         overflow: hidden;
         height: 200px;
+        margin-bottom: 0;
     }
     #forkongithub a {
         width: 200px;
@@ -664,8 +676,14 @@ function Chess()
     ;
 
     // engines/algorithms
+    const algorithms = {
+        ab:   {algo:"ab", iterativedeepening:true, depth:245, time:10000},
+        mtdf: {algo:"mtdf", iterativedeepening:true, depth:245, time:10000},
+        bns:  {algo:"bns", depth:7, time:10000},
+        mcts: {algo:"mcts", iterations:500, uct:4, depth:25, time:10000}
+    };
     const chess = {
-        js: './worker.js',
+        js: './src/ChessWorker.js',
         worker: null,
         init: function() {
             if (chess.worker)
@@ -767,7 +785,6 @@ function Chess()
     let game, board, msg,
         active_piece = null,
         move_waiting = null,
-        abort_move = null,
         play_with_computer = false,
         computer_plays = false,
         is_stockfish = false,
@@ -821,15 +838,15 @@ function Chess()
         if (computer_plays)
         {
             removeClass(el('hourglass'), 'spinning');
-            if (stockfish.worker) stockfish.send('stop', () => {});
+            if (chess.worker) chess.send({stop:true}, () => {});
             else if (sunfish.worker) sunfish.send('stop', () => {});
-            else if (chess.worker) chess.send({stop:true}, () => {});
+            else if (stockfish.worker) stockfish.send('stop', () => {});
         }
-        /*if (move_waiting)
+        if (move_waiting)
         {
             clearTimeout(move_waiting);
             move_waiting = null;
-        }*/
+        }
     }
 
     function engine_move(then)
@@ -846,7 +863,7 @@ function Chess()
         }
         else if (chess.worker)
         {
-            chess.send({bestmove:true, fen:game.getFEN(), algo:algo}, then);
+            chess.send({bestmove:true, fen:game.getFEN(), opts:JSON.stringify(algorithms[algo])}, then);
         }
     }
 
@@ -1026,8 +1043,8 @@ function Chess()
             }
 
             update_gui();
-            /*clearTimeout(move_waiting);
-            move_waiting = setTimeout(machine_move, 1500);*/
+            clearTimeout(move_waiting);
+            move_waiting = setTimeout(machine_move, 1500);
         }
     }
 
@@ -1110,8 +1127,8 @@ function Chess()
                 m.innerText += (m.innerText.length ? ' ' : '') + (pos1+pos2).toLowerCase() + (game.isCheckMate() ? '#' : (game.isCheck() ? '+' : ''));
             }
             update_gui();
-            /*clearTimeout(move_waiting);
-            move_waiting = setTimeout(machine_move, 1500);*/
+            clearTimeout(move_waiting);
+            move_waiting = setTimeout(machine_move, 1500);
         }
     }
 
@@ -1290,20 +1307,8 @@ function Chess()
 
     init();
 }
-window.Chess = Chess;
-
-// start
-Chess();
 
 // utils
-function do_abort()
-{
-    var aborted_move = false;
-    return function(enable) {
-        if (true === enable) aborted_move = true;
-        return aborted_move;
-    };
-}
 function start_worker(engine)
 {
     if (engine && !engine.worker && engine.js)
@@ -1390,6 +1395,11 @@ function removeClass(el, className)
     }
     return el;
 }
+
+// export
+window.Chess = Chess;
+// start
+Chess();
 })(window);
 </script>
 </body>
