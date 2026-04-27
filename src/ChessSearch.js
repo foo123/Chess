@@ -208,7 +208,7 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
                         mov = moves[i];
                         move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
                         if (!moves_next[i]) moves_next[i] = board.all_moves_for(opponent, true);
-                        score_up_to_now = opts.eval_pos ? 0 : opts.eval_move(board, color, move, moves_next[i].length);
+                        score_up_to_now = opts.eval_pos ? 0 : opts.eval_move(board, 0, 1, color, move, moves_next[i].length);
                         score = alphabeta(opts, board, opponent, 2, -1, moves_next[i], score_up_to_now, test-1, test);
                         if (score >= test)
                         {
@@ -245,7 +245,7 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
                     mov = moves[i];
                     move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
                     if (!moves_next[i]) moves_next[i] = board.all_moves_for(opponent, true);
-                    score_up_to_now = opts.eval_pos ? 0 : opts.eval_move(board, color, move, moves_next[i].length);
+                    score_up_to_now = opts.eval_pos ? 0 : opts.eval_move(board, 0, 1, color, move, moves_next[i].length);
 
                     switch (opts.algo)
                     {
@@ -354,7 +354,7 @@ function alphabeta(opts, board, color, depth, sgn, moves, score_up_to_now, alpha
                 mov = moves[i];
                 move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
                 moves_next = board.all_moves_for(opponent, true);
-                score = opts.eval_pos ? 0 : (score_up_to_now + sgn*opts.eval_move(board, color, move, moves_next.length));
+                score = opts.eval_pos ? 0 : opts.eval_move(board, score_up_to_now, sgn, color, move, moves_next.length);
                 value = stdMath.max(value, alphabeta(opts, board, opponent, depth+1, -sgn, moves_next, score, a, beta))
                 board.unmove(move);
                 if (value >= beta) break; // beta cutoff
@@ -370,7 +370,7 @@ function alphabeta(opts, board, color, depth, sgn, moves, score_up_to_now, alpha
                 mov = moves[i];
                 move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
                 moves_next = board.all_moves_for(opponent, true);
-                score = opts.eval_pos ? 0 : (score_up_to_now + sgn*opts.eval_move(board, color, move, moves_next.length));
+                score = opts.eval_pos ? 0 : opts.eval_move(board, score_up_to_now, sgn, color, move, moves_next.length);
                 value = stdMath.min(value, alphabeta(opts, board, opponent, depth+1, -sgn, moves_next, score, alpha, b));
                 board.unmove(move);
                 if (value <= alpha) break; // alpha cutoff
@@ -417,7 +417,7 @@ function mtdf(opts, board, color, depth, sgn, moves, score_up_to_now)
             beta = value === lo ? value+1 : value;
             value = alphabeta(opts, board, color, depth, sgn, moves, score_up_to_now, beta-1, beta);
             if (value < beta) hi = value; else lo = value;
-        } while ((lo+2 < hi) || (iter < 500));
+        } while ((lo+2 < hi) || (iter < 100));
     }
     return value;
 }
@@ -450,7 +450,7 @@ function bns(opts, board, color, depth, sgn, moves, score_up_to_now, alpha, beta
                 mov = moves[i];
                 move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
                 if (!moves_next[i]) moves_next[i] = board.all_moves_for(opponent, true);
-                score = opts.eval_pos ? 0 : (score_up_to_now + sgn*opts.eval_move(board, color, move, moves_next[i].length));
+                score = opts.eval_pos ? 0 : opts.eval_move(board, score_up_to_now, sgn, color, move, moves_next[i].length);
                 score = alphabeta(opts, board, opponent, depth+1, -sgn, moves_next[i], score, test-1, test);
                 board.unmove(move);
                 if (score >= test)
@@ -504,7 +504,7 @@ function mcts_playout(opts, board, color, depth, sgn, moves, score_up_to_now)
         // return avg of all moves on remaining stages
         return moves.reduce(function(score, mov) {
             var move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
-            score += opts.eval_pos ? opts.eval_pos(board, 0 > sgn ? opponent : color) : (score_up_to_now + sgn*opts.eval_move(board, color, move, null));
+            score += opts.eval_pos ? opts.eval_pos(board, 0 > sgn ? opponent : color) : opts.eval_move(board, score_up_to_now, sgn, color, move, null);
             board.unmove(move);
             return score;
         }, 0)/moves.length;
@@ -530,7 +530,7 @@ function mcts_playout(opts, board, color, depth, sgn, moves, score_up_to_now)
     mov = moves[i];
     move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
     moves_next = board.all_moves_for(opponent, true);
-    score = opts.eval_pos ? 0 : (score_up_to_now + sgn*opts.eval_move(board, color, move, moves_next.length));
+    score = opts.eval_pos ? 0 : opts.eval_move(board, score_up_to_now, sgn, color, move, moves_next.length);
     if (depth >= opts.depthAB)
     {
         value = alphabeta_rollout(opts, board, opponent, depth+1, -sgn, moves_next, score, -INF, INF);
@@ -579,7 +579,7 @@ function alphabeta_rollout(opts, board, color, depth, sgn, moves, score_up_to_no
         mov = moves[any_of(n)];
         move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
         moves_next = board.all_moves_for(opponent, true);
-        score = opts.eval_pos ? 0 : (score_up_to_now + sgn*opts.eval_move(board, color, move, moves_next.length));
+        score = opts.eval_pos ? 0 : opts.eval_move(board, score_up_to_now, sgn, color, move, moves_next.length);
         value = mcts_playout(opts, board, opponent, depth+1, -sgn, moves_next, score);
         board.unmove(move);
     }
@@ -607,7 +607,7 @@ function alphabeta_rollout(opts, board, color, depth, sgn, moves, score_up_to_no
             mov = moves[feasible.i];
             move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true);
             moves_next = board.all_moves_for(opponent, true);
-            score = opts.eval_pos ? 0 : (score_up_to_now + sgn*opts.eval_move(board, color, move, moves_next.length));
+            score = opts.eval_pos ? 0 : opts.eval_move(board, score_up_to_now, sgn, color, move, moves_next.length);
             value = alphabeta_rollout(opts, board, opponent, depth+1, -sgn, moves_next, score, feasible.a, feasible.b);
             board.unmove(move);
         }
@@ -689,7 +689,7 @@ function piece_square_value(board, p, y, x)
     }
     return value;
 }
-function eval_move(board, color, move, opponent_moves)
+function eval_move(board, score_up_to_now, sgn, color, move, opponent_moves)
 {
     /*
     move evaluation function: a) material gain, b) closeness to opposite king, c) opponent mobility, ..
@@ -697,7 +697,7 @@ function eval_move(board, color, move, opponent_moves)
     // O(1)
     var f1 = 1, f2 = board.halfMoves < 15 ? 0.12 : 0, f3 = board.halfMoves < 20 ? 0 : 0.12,
         opK = board.king[COLOR[OPPOSITE[color]]];
-    if (0 === opponent_moves) return !board.is_king_present(OPPOSITE[color]) || board.threatened_at_by(opK.y, opK.x, color) ? MATE : (MATE/2);
+    if (0 === opponent_moves) return !board.is_king_present(OPPOSITE[color]) || board.threatened_at_by(opK.y, opK.x, color) ? (sgn*MATE) : (sgn*MATE/2)/* DRAW as positive MATE/2*/;
     var moved = move[0], taken = move[5],
         placed = board._[move[3]][move[4]],
         capture_gain = !taken || !taken.type ? 0 : piece_square_value(board, taken, move[3], move[4]),
@@ -708,7 +708,7 @@ function eval_move(board, color, move, opponent_moves)
         close_to_opposite_king = d1 - d2,//(d2 > d1 ? (-d2) : (d2 < d1 ? (16-d2) : 0)),
         opponent_mobility = opponent_moves || 0
     ;
-    return f1*material_gain + f2*close_to_opposite_king - f3*opponent_mobility;
+    return (score_up_to_now || 0) + sgn*(f1*material_gain + f2*close_to_opposite_king - f3*opponent_mobility);
 }
 eval_move.MATE = MATE;
 function eval_pos(board, color)
@@ -747,7 +747,7 @@ function best_n_moves(n, moves, board, player)
 {
     return order_moves(moves.map(function(mov) {
         var move = board.move(mov[0], mov[1], mov[2], mov[3], mov[4], true),
-            score = eval_move(board, player, move, null);
+            score = eval_move(board, 0, 1, player, move, null);
         board.unmove(move);
         return score;
     }), moves.slice()).slice(0, n);

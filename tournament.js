@@ -4,6 +4,22 @@
 
 // In 6 matches of STOCKFISH 18 (ELO1900) vs SUNFISH 2023 result is 5.5 - 0.5 (1 draw,min.plies 48,max.plies 68)
 
+// (evaluating DRAW as 0)
+// In 6 matches of AB-245-d vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 36,max.plies 120)
+// In 6 matches of MTDf-245-d vs SUNFISH 2023 result is 3 - 3 (2 draws,min.plies 36,max.plies 108)
+// In 6 matches of BNS-7 vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 36,max.plies 106)
+// In 6 matches of MCTS-15-4-500 vs SUNFISH 2023 result is 1.5 - 4.5 (1 draw,min.plies 35,max.plies 136)
+// In 6 matches of MCTS-25-4-500 vs SUNFISH 2023 result is 2.5 - 3.5 (3 draws,min.plies 50,max.plies 156)
+
+// (evaluating DRAW as -MATE/2)
+// In 6 matches of AB-245-d vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 50,max.plies 128)
+// In 6 matches of MTDf-245-d vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 36,max.plies 128)
+// In 6 matches of BNS-7 vs SUNFISH 2023 result is 2.5 - 3.5 (3 draws,min.plies 38,max.plies 109)
+// In 6 matches of MCTS-10-4-500 vs SUNFISH 2023 result is 2 - 4 (4 draws,min.plies 23,max.plies 154)
+// In 6 matches of MCTS-15-4-500 vs SUNFISH 2023 result is 3.5 - 2.5 (1 draw,min.plies 20,max.plies 94)
+// In 6 matches of MCTS-25-4-500 vs SUNFISH 2023 result is 3 - 3 (2 draws,min.plies 20,max.plies 136)
+
+// (evaluating DRAW as MATE/2)
 // In 6 matches of AB-245-d vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 22,max.plies 122)
 // In 6 matches of MTDf-245-d vs SUNFISH 2023 result is 3 - 3 (2 draws,min.plies 48,max.plies 92)
 // In 6 matches of BNS-7 vs SUNFISH 2023 result is 3 - 3 (2 draws,min.plies 38,max.plies 120)
@@ -11,6 +27,8 @@
 // In 6 matches of MCTS-15-4-500 vs SUNFISH 2023 result is 2 - 4 (2 draws,min.plies 30,max.plies 112)
 // In 6 matches of MCTS-25-4-500 vs SUNFISH 2023 result is 2 - 4 (4 draws,min.plies 40,max.plies 148)
 // In 6 matches of MCTS-35-4-500 vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 10,max.plies 136)
+// In 6 matches of ABMCTS-15-5-3-100 vs SUNFISH 2023 result is 3.5 - 2.5 (1 draw,min.plies 44,max.plies 74)
+
 
 const args = (function parse_args() {
     const args = {
