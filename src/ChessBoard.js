@@ -18,10 +18,10 @@ else
 }('undefined' !== typeof self ? self : this, 'ChessBoard', function(undef) {
 "use strict";
 
-function ChessBoard(container, container_moves)
+function ChessBoard(get_piece_at, container, container_moves)
 {
     var self = this, squares = null;
-    self.make = function(get_piece_at, moves)  {
+    self.make = function(moves)  {
         var nt, nb, nl, nr, span, i, j, square, piece;
         container.textContent = '';
         addClass(container, 'chessboard');
@@ -84,7 +84,11 @@ function ChessBoard(container, container_moves)
                 square.style.setProperty('--y', String(8-i));
                 addClass(square, 'square');
                 addClass(square, i & 1 ? (j & 1 ? 'white' : 'black') : (j & 1 ? 'black' : 'white'));
-                if (get_piece_at) self.add(square, get_piece_at(square.id));
+                if (get_piece_at)
+                {
+                    piece = get_piece(get_piece_at(square.id));
+                    if (piece) add(square, piece);
+                }
                 squares.appendChild(square);
             }
         }
@@ -95,52 +99,126 @@ function ChessBoard(container, container_moves)
     self.squares = function() {
         return squares;
     };
-    self.empty = function(square) {
-        if (square)
+    self.doMove = function(piece, square1, square2) {
+        if ((square1=get_square(square1)) && (square2=get_square(square2)) && (piece = get_piece(piece)))
         {
-            removeClass(square, 'piece');
-            removeClass(square, 'w-pawn');
-            removeClass(square, 'b-pawn');
-            removeClass(square, 'w-rook');
-            removeClass(square, 'b-rook');
-            removeClass(square, 'w-knight');
-            removeClass(square, 'b-knight');
-            removeClass(square, 'w-bishop');
-            removeClass(square, 'b-bishop');
-            removeClass(square, 'w-queen');
-            removeClass(square, 'b-queen');
-            removeClass(square, 'w-king');
-            removeClass(square, 'b-king');
-        }
-    };
-    self.add = function(square, piece) {
-        if (square)
-        {
-            piece = get_piece(piece);
-            if (piece)
+            move(piece, square1, square2);
+
+            if ('PAWN' === piece.type)
             {
-                addClass(square, ('BLACK' === piece.color ? 'b-' : 'w-') + piece.type.toLowerCase());
-                addClass(square, 'piece');
+                // handle en passants
+                if ('BLACK' === piece.color && '3' === square2.id.charAt(1))
+                {
+                    maybe_remove(el(square2.id.charAt(0)+'4'), get_piece_at(square2.id.charAt(0)+'4'));
+                }
+                if ('WHITE' === piece.color && '6' === square2.id.charAt(1))
+                {
+                    maybe_remove(el(square2.id.charAt(0)+'5'), get_piece_at(square2.id.charAt(0)+'5'));
+                }
+            }
+
+            if ('KING' === piece.type)
+            {
+                if ('e1' === square1.id)
+                {
+                    if ('g1' === square2.id)
+                    {
+                        // kingside castling white
+                        move(get_piece_at('f1'), el('h1'), el('f1'));
+                    }
+                    else if ('c1' === square2.id)
+                    {
+                        // queenside castling white
+                        move(get_piece_at('d1'), el('a1'), el('d1'));
+                    }
+                }
+                else if ('e8' === square1.id)
+                {
+                    if ('g8' === square2.id)
+                    {
+                        // kingside castling black
+                        move(get_piece_at('f8'), el('h8'), el('f8'));
+                    }
+                    else if ('c8' === square2.id)
+                    {
+                        // queenside castling black
+                        move(get_piece_at('d8'), el('a8'), el('d8'));
+                    }
+                }
             }
         }
     };
-    self.move = function(piece, square1, square2) {
-        self.empty(square1);
-        self.empty(square2);
-        self.add(square2, piece);
+    self.undoMove = function(piece, otherpiece, square1, square2) {
+        if ((square1=get_square(square1)) && (square2=get_square(square2)))
+        {
+            empty(square1);
+            empty(square2);
+            piece = get_piece(piece);
+            otherpiece = get_piece(otherpiece);
+            if (piece) add(square1, piece);
+            if (otherpiece) add(square2, otherpiece);
+
+            if (piece)
+            {
+                if ('PAWN' === piece.type)
+                {
+                    // handle en passants
+                    if ('BLACK' === piece.color && '3' === square2.id.charAt(1))
+                    {
+                        add(el(square2.id.charAt(0)+'4'), get_piece_at(square2.id.charAt(0)+'4'));
+                    }
+                    if ('WHITE' === piece.color && '6' === square2.id.charAt(1))
+                    {
+                        add(el(square2.id.charAt(0)+'5'), get_piece_at(square2.id.charAt(0)+'5'));
+                    }
+                }
+
+                if ('KING' === piece.type)
+                {
+                    if ('e1' === square1.id)
+                    {
+                        if ('g1' === square2.id)
+                        {
+                            // kingside castling white
+                            move(get_piece_at('h1'), el('f1'), el('h1'));
+                        }
+                        else if ('c1' === square2.id)
+                        {
+                            // queenside castling white
+                            move(get_piece_at('a1'), el('d1'), el('a1'));
+                        }
+                    }
+                    else if ('e8' === square1.id)
+                    {
+                        if ('g8' === square2.id)
+                        {
+                            // kingside castling black
+                            move(get_piece_at('h8'), el('f8'), el('h8'));
+                        }
+                        else if ('c8' === square2.id)
+                        {
+                            // queenside castling black
+                            move(get_piece_at('a8'), el('d8'), el('a8'));
+                        }
+                    }
+                }
+            }
+        }
     };
-    self.maybe_remove = function(square, piece) {
-        if (square && !piece) self.empty(square);
-    };
-    self.show_possible_moves = function(moves) {
+    self.showPossibleMoves = function(moves) {
         moves.forEach(function(m) {addClass(el(m), 'active');});
     };
-    self.clear_possible_moves = function() {
+    self.clearPossibleMoves = function() {
         $('.square.active', container).forEach(function(s) {removeClass(s, 'active');});
     };
 }
 
 // utils
+function get_square(square)
+{
+    if ("string" === typeof square) square = el(square);
+    return square || null;
+}
 function get_piece(piece)
 {
     if (piece)
@@ -184,6 +262,37 @@ function get_piece(piece)
         }
     }
     return piece || null;
+}
+function empty(square)
+{
+    removeClass(square, 'piece');
+    removeClass(square, 'w-pawn');
+    removeClass(square, 'b-pawn');
+    removeClass(square, 'w-rook');
+    removeClass(square, 'b-rook');
+    removeClass(square, 'w-knight');
+    removeClass(square, 'b-knight');
+    removeClass(square, 'w-bishop');
+    removeClass(square, 'b-bishop');
+    removeClass(square, 'w-queen');
+    removeClass(square, 'b-queen');
+    removeClass(square, 'w-king');
+    removeClass(square, 'b-king');
+}
+function add(square, piece)
+{
+    addClass(square, ('BLACK' === piece.color ? 'b-' : 'w-') + piece.type.toLowerCase());
+    addClass(square, 'piece');
+}
+function move(piece, square1, square2)
+{
+    empty(square1);
+    empty(square2);
+    add(square2, piece);
+}
+function maybe_remove(square, piece)
+{
+    if (square && !piece) empty(square);
 }
 function el(id)
 {
