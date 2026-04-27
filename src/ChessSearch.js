@@ -702,13 +702,13 @@ function eval_move(board, score_up_to_now, sgn, color, move, opponent_moves)
         placed = board._[move[3]][move[4]],
         capture_gain = !taken || !taken.type ? 0 : piece_square_value(board, taken, move[3], move[4]),
         position_gain = piece_square_value(board, placed, move[3], move[4]) - piece_square_value(board, moved, move[1], move[2]),
-        material_gain = position_gain + capture_gain,
+        gain = position_gain + capture_gain,
         d1 = stdMath.abs(move[2]-opK.x) + stdMath.abs(move[1]-opK.y),
         d2 = stdMath.abs(move[4]-opK.x) + stdMath.abs(move[3]-opK.y),
         close_to_opposite_king = d1 - d2,//(d2 > d1 ? (-d2) : (d2 < d1 ? (16-d2) : 0)),
         opponent_mobility = opponent_moves || 0
     ;
-    return (score_up_to_now || 0) + sgn*(f1*material_gain + f2*close_to_opposite_king - f3*opponent_mobility);
+    return (score_up_to_now || 0) + sgn*(f1*gain + f2*close_to_opposite_king - f3*opponent_mobility);
 }
 eval_move.MATE = MATE;
 function eval_pos(board, color)

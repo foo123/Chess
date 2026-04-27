@@ -903,15 +903,15 @@ Board[proto] = {
             {
                 check_and_add(board, K, color, moves, y, x, y+1, x-1);
             }
-            if (K._kc && EMPTY === board._[y][x+1].color && EMPTY === board._[y][x+2].color && !board.threatened_at_by(y,x, OPPOSITE[color]) && !board.threatened_at_by(y,x+1, OPPOSITE[color]) && !board.threatened_at_by(y,x+2, OPPOSITE[color]))
+            if (K._kc && EMPTY === board._[y][x+1].color && EMPTY === board._[y][x+2].color && !board.threatened_at_by(y, x, OPPOSITE[color]) && !board.threatened_at_by(y, x+1, OPPOSITE[color]) && !board.threatened_at_by(y, x+2, OPPOSITE[color]))
             {
                 // kingside castling
-                moves[moves.cnt++] = [y,x+2];
+                moves[moves.cnt++] = [y, x+2];
             }
-            if (K._qc && EMPTY === board._[y][x-1].color && EMPTY === board._[y][x-2].color && EMPTY === board._[y][x-3].color && !board.threatened_at_by(y,x, OPPOSITE[color]) && !board.threatened_at_by(y,x-1, OPPOSITE[color]) && !board.threatened_at_by(y,x-2, OPPOSITE[color]))
+            if (K._qc && EMPTY === board._[y][x-1].color && EMPTY === board._[y][x-2].color && EMPTY === board._[y][x-3].color && !board.threatened_at_by(y, x, OPPOSITE[color]) && !board.threatened_at_by(y, x-1, OPPOSITE[color]) && !board.threatened_at_by(y, x-2, OPPOSITE[color]))
             {
                 // queenside castling
-                moves[moves.cnt++] = [y,x-2];
+                moves[moves.cnt++] = [y, x-2];
             }
         }
         // truncate if needed

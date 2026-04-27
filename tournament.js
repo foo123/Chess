@@ -4,32 +4,23 @@
 
 // In 6 matches of STOCKFISH 18 (ELO1900) vs SUNFISH 2023 result is 5.5 - 0.5 (1 draw,min.plies 48,max.plies 68)
 
-// (evaluating DRAW as 0)
-// In 6 matches of AB-245-d vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 36,max.plies 120)
-// In 6 matches of MTDf-245-d vs SUNFISH 2023 result is 3 - 3 (2 draws,min.plies 36,max.plies 108)
-// In 6 matches of BNS-7 vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 36,max.plies 106)
-// In 6 matches of MCTS-15-4-500 vs SUNFISH 2023 result is 1.5 - 4.5 (1 draw,min.plies 35,max.plies 136)
-// In 6 matches of MCTS-25-4-500 vs SUNFISH 2023 result is 2.5 - 3.5 (3 draws,min.plies 50,max.plies 156)
+// In 6 matches of AB-245-d vs SUNFISH 2023 result is 1 - 5 (2 draws,min.plies 40,max.plies 122)
+// In 6 matches of MTDf-245-d vs SUNFISH 2023 result is 3.5 - 2.5 (3 draws,min.plies 36,max.plies 106)
+// In 6 matches of BNS-7 vs SUNFISH 2023 result is 2.5 - 3.5 (1 draw,min.plies 34,max.plies 125)
+// In 6 matches of MCTS-10-4-500 vs SUNFISH 2023 result is 2 - 4 (0 draws,min.plies 22,max.plies 121)
+// In 6 matches of MCTS-15-4-500 vs SUNFISH 2023 result is 2 - 4 (2 draws,min.plies 38,max.plies 118)
+// In 6 matches of MCTS-25-4-500 vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 8,max.plies 132)
+// In 6 matches of MCTS-35-4-500 vs SUNFISH 2023 result is 3 - 3 (2 draws,min.plies 34,max.plies 130)
+// In 6 matches of ABMCTS-10-5-3-50 vs SUNFISH 2023 result is 4 - 2 (2 draws,min.plies 66,max.plies 130)
+// In 6 matches of ABMCTS-10-5-3-50-d vs SUNFISH 2023 result is 2.5 - 3.5 (3 draws,min.plies 18,max.plies 116)
+// In 6 matches of ABMCTS-15-5-3-100 vs SUNFISH 2023 result is 3.5 - 2.5 (3 draws,min.plies 46,max.plies 124)
+// In 6 matches of ABMCTS-10-8-6-100-d vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 20,max.plies 106)
+// In 6 matches of MIXED(MCTS-10,MTDf) vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 36,max.plies 111)
+// In 6 matches of MIXED(MTDf,MCTS-10) vs SUNFISH 2023 result is 2 - 4 (2 draws,min.plies 40,max.plies 114)
+// In 6 matches of MIXED(MCTS-15,MTDf) vs SUNFISH 2023 result is 2 - 4 (4 draws,min.plies 58,max.plies 126)
+// In 6 matches of MIXED(MTDf,MCTS-15) vs SUNFISH 2023 result is 1.5 - 4.5 (1 draw,min.plies 14,max.plies 155)
 
-// (evaluating DRAW as -MATE/2)
-// In 6 matches of AB-245-d vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 50,max.plies 128)
-// In 6 matches of MTDf-245-d vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 36,max.plies 128)
-// In 6 matches of BNS-7 vs SUNFISH 2023 result is 2.5 - 3.5 (3 draws,min.plies 38,max.plies 109)
-// In 6 matches of MCTS-10-4-500 vs SUNFISH 2023 result is 2 - 4 (4 draws,min.plies 23,max.plies 154)
-// In 6 matches of MCTS-15-4-500 vs SUNFISH 2023 result is 3.5 - 2.5 (1 draw,min.plies 20,max.plies 94)
-// In 6 matches of MCTS-25-4-500 vs SUNFISH 2023 result is 3 - 3 (2 draws,min.plies 20,max.plies 136)
-
-// (evaluating DRAW as MATE/2)
-// In 6 matches of AB-245-d vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 22,max.plies 122)
-// In 6 matches of MTDf-245-d vs SUNFISH 2023 result is 3 - 3 (2 draws,min.plies 48,max.plies 92)
-// In 6 matches of BNS-7 vs SUNFISH 2023 result is 3 - 3 (2 draws,min.plies 38,max.plies 120)
-// In 6 matches of MCTS-10-4-500 vs SUNFISH 2023 result is 3 - 3 (2 draws,min.plies 32,max.plies 106)
-// In 6 matches of MCTS-15-4-500 vs SUNFISH 2023 result is 2 - 4 (2 draws,min.plies 30,max.plies 112)
-// In 6 matches of MCTS-25-4-500 vs SUNFISH 2023 result is 2 - 4 (4 draws,min.plies 40,max.plies 148)
-// In 6 matches of MCTS-35-4-500 vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 10,max.plies 136)
-// In 6 matches of ABMCTS-15-5-3-100 vs SUNFISH 2023 result is 3.5 - 2.5 (1 draw,min.plies 44,max.plies 74)
-
-
+const echo = console.log;
 const args = (function parse_args() {
     const args = {
         PLAYER1:        'ab',
@@ -57,6 +48,7 @@ const args = (function parse_args() {
         'mixed1',
         'mixed2',
         'mixed3',
+        'mixed4',
         'sunfish',
         'stockfish'
     ];
@@ -66,8 +58,8 @@ const args = (function parse_args() {
 
     if (-1 === supported_engines.indexOf(args.PLAYER1) || -1 === supported_engines.indexOf(args.PLAYER2))
     {
-        console.log('Unsupported engine(s): '+[args.PLAYER1,args.PLAYER2].join(' vs '));
-        console.log('Supported engines/algorithms: '+supported_engines.join(', '));
+        echo('Unsupported engines: '+[args.PLAYER1,args.PLAYER2].join(' vs '));
+        echo('Supported engines/algorithms: '+supported_engines.join(', '));
         process.exit(1);
     }
 
@@ -96,14 +88,14 @@ const engine = {
     sunfish:    null,
     stockfish:  null
 };
-const opts = {
+const algorithm = {
     ab:        {algo:"ab", iterativedeepening:true, depth:245, time:10000, log:args.SHOW},
     mtdf:      {algo:"mtdf", iterativedeepening:true, depth:245, time:10000, log:args.SHOW},
     bns:       {algo:"bns", iterativedeepening:args.DEEPEN, depth:args.DEPTH, time:10000, log:args.SHOW},
     mcts:      {algo:"mcts", iterations:args.ITER, uct:args.UCT, depth:args.DEPTH, time:10000, log:args.SHOW},
     mctsab:    {algo:"mcts", iterations:args.ITER, uct:args.UCT, mcts:args.MCTS, ab:args.AB, depth:args.DEPTH, time:10000, log:args.SHOW},
-    abmcts:    {algo:"ab", iterations:args.ITER, uct:args.UCT, mcts:args.MCTS, depth:args.DEPTH, time:10000, log:args.SHOW},
-    abbns:     {algo:"ab", bns:args.BNS, depth:args.DEPTH, time:10000, log:args.SHOW},
+    abmcts:    {algo:"ab", iterativedeepening:args.DEEPEN, iterations:args.ITER, uct:args.UCT, mcts:args.MCTS, depth:args.DEPTH, time:10000, log:args.SHOW},
+    abbns:     {algo:"ab", iterativedeepening:args.DEEPEN, bns:args.BNS, depth:args.DEPTH, time:10000, log:args.SHOW},
     sunfish:   {depth:245, time:10000},
     stockfish: {elo:args.ELO, depth:245, time:10000}
 };
@@ -120,67 +112,74 @@ const init = {
 };
 const play = {
     ab: function(game, then) {
-        then((new ChessSearch.HybridSearch(game, opts.ab)).bestMove(game.getBoard().turn));
+        then((new ChessSearch.HybridSearch(game, algorithm.ab)).bestMove(game.getBoard().turn));
     },
     mtdf: function(game, then) {
-        then((new ChessSearch.HybridSearch(game, opts.mtdf)).bestMove(game.getBoard().turn));
+        then((new ChessSearch.HybridSearch(game, algorithm.mtdf)).bestMove(game.getBoard().turn));
     },
     bns: function(game, then) {
-        then((new ChessSearch.HybridSearch(game, opts.bns)).bestMove(game.getBoard().turn));
+        then((new ChessSearch.HybridSearch(game, algorithm.bns)).bestMove(game.getBoard().turn));
     },
     mcts: function(game, then) {
-        then((new ChessSearch.HybridSearch(game, opts.mcts)).bestMove(game.getBoard().turn));
+        then((new ChessSearch.HybridSearch(game, algorithm.mcts)).bestMove(game.getBoard().turn));
     },
     mctsab: function(game, then) {
-        then((new ChessSearch.HybridSearch(game, opts.mctsab)).bestMove(game.getBoard().turn));
+        then((new ChessSearch.HybridSearch(game, algorithm.mctsab)).bestMove(game.getBoard().turn));
     },
     abmcts: function(game, then) {
-        then((new ChessSearch.HybridSearch(game, opts.abmcts)).bestMove(game.getBoard().turn));
+        then((new ChessSearch.HybridSearch(game, algorithm.abmcts)).bestMove(game.getBoard().turn));
     },
     abbns: function(game, then) {
-        then((new ChessSearch.HybridSearch(game, opts.abbns)).bestMove(game.getBoard().turn));
+        then((new ChessSearch.HybridSearch(game, algorithm.abbns)).bestMove(game.getBoard().turn));
     },
     mixed1: function(game, then) {
         const mtdf = {algo:"mtdf", iterativedeepening:true, depth:245, time:10000, log:args.SHOW};
-        const mcts = {algo:"mcts", iterations:500, uct:4, depth:25, time:10000, log:args.SHOW};
+        const mcts = {algo:"mcts", iterations:500, uct:4, depth:10, time:10000, log:args.SHOW};
         const board = game.getBoard();
         then((new ChessSearch.HybridSearch(game, game.isCheck() ? mtdf : mcts)).bestMove(board.turn));
     },
     mixed2: function(game, then) {
         const mtdf = {algo:"mtdf", iterativedeepening:true, depth:245, time:10000, log:args.SHOW};
-        const mcts = {algo:"mcts", iterations:500, uct:4, depth:25, time:10000, log:args.SHOW};
+        const mcts = {algo:"mcts", iterations:500, uct:4, depth:10, time:10000, log:args.SHOW};
         const board = game.getBoard();
         then((new ChessSearch.HybridSearch(game, game.isCheck() ? mcts : mtdf)).bestMove(board.turn));
     },
     mixed3: function(game, then) {
         const bns = {algo:"bns", depth:7, time:10000, log:args.SHOW};
-        const mcts = {algo:"mcts", iterations:500, uct:4, depth:25, time:10000, log:args.SHOW};
+        const mcts = {algo:"mcts", iterations:500, uct:4, depth:10, time:10000, log:args.SHOW};
         const board = game.getBoard();
         then((new ChessSearch.HybridSearch(game, game.isCheck() ? mcts : bns)).bestMove(board.turn));
     },
+    mixed4: function(game, then) {
+        const bns = {algo:"bns", depth:7, time:10000, log:args.SHOW};
+        const mcts = {algo:"mcts", iterations:500, uct:4, depth:10, time:10000, log:args.SHOW};
+        const board = game.getBoard();
+        then((new ChessSearch.HybridSearch(game, game.isCheck() ? bns : mcts)).bestMove(board.turn));
+    },
     sunfish: function(game, then) {
         engine.sunfish.sendCMD('position startpos moves ' + game.getMovesUpToNow().join(' '));
-        engine.sunfish.sendCMD('go ' + (opts.sunfish.depth ? ('depth ' + String(opts.sunfish.depth)) : '') + (opts.sunfish.time ? ('wtime ' + String(opts.sunfish.time) + ' btime ' + String(opts.sunfish.time)) : ''), then);
+        engine.sunfish.sendCMD('go ' + (algorithm.sunfish.depth ? ('depth ' + String(algorithm.sunfish.depth)) : '') + (algorithm.sunfish.time ? ('wtime ' + String(algorithm.sunfish.time) + ' btime ' + String(algorithm.sunfish.time)) : ''), then);
     },
     stockfish: function(game, then) {
         engine.stockfish.move = then;
         engine.stockfish.sendCMD('position startpos moves ' + game.getMovesUpToNow().join(' '));
-        engine.stockfish.sendCMD('go ' + (opts.stockfish.depth ? ('depth ' + String(opts.stockfish.depth)) : '') + (opts.stockfish.time ? ('wtime ' + String(opts.stockfish.time) + ' btime ' + String(opts.stockfish.time)) : ''));
+        engine.stockfish.sendCMD('go ' + (algorithm.stockfish.depth ? ('depth ' + String(algorithm.stockfish.depth)) : '') + (algorithm.stockfish.time ? ('wtime ' + String(algorithm.stockfish.time) + ' btime ' + String(algorithm.stockfish.time)) : ''));
     }
 };
 const player = {
-    ab:         'AB-'+String(opts.ab.depth)+(opts.ab.iterativedeepening ? '-d' : ''),
-    mtdf:       'MTDf-'+String(opts.mtdf.depth)+(opts.mtdf.iterativedeepening ? '-d' : ''),
-    bns:        'BNS-'+String(opts.bns.depth)+(opts.bns.iterativedeepening ? '-d' : ''),
-    mcts:       'MCTS-'+String(opts.mcts.depth)+'-'+String(opts.mcts.uct)+'-'+String(opts.mcts.iterations),
-    mctsab:     'MCTSAB-'+String(opts.mctsab.depth)+'-'+String(opts.mctsab.uct)+'-'+String(opts.mctsab.mcts)+'-'+String(opts.mctsab.ab)+'-'+String(opts.mctsab.iterations),
-    abmcts:     'ABMCTS-'+String(opts.abmcts.depth)+'-'+String(opts.abmcts.uct)+'-'+String(opts.abmcts.mcts)+'-'+String(opts.abmcts.iterations),
-    abbns:      'ABBNS-'+String(opts.abbns.depth)+'-'+String(opts.abbns.bns),
+    ab:         'AB-'+String(algorithm.ab.depth)+(algorithm.ab.iterativedeepening ? '-d' : ''),
+    mtdf:       'MTDf-'+String(algorithm.mtdf.depth)+(algorithm.mtdf.iterativedeepening ? '-d' : ''),
+    bns:        'BNS-'+String(algorithm.bns.depth)+(algorithm.bns.iterativedeepening ? '-d' : ''),
+    mcts:       'MCTS-'+String(algorithm.mcts.depth)+'-'+String(algorithm.mcts.uct)+'-'+String(algorithm.mcts.iterations),
+    mctsab:     'MCTSAB-'+String(algorithm.mctsab.depth)+'-'+String(algorithm.mctsab.uct)+'-'+String(algorithm.mctsab.mcts)+'-'+String(algorithm.mctsab.ab)+'-'+String(algorithm.mctsab.iterations),
+    abmcts:     'ABMCTS-'+String(algorithm.abmcts.depth)+'-'+String(algorithm.abmcts.uct)+'-'+String(algorithm.abmcts.mcts)+'-'+String(algorithm.abmcts.iterations)+(algorithm.abmcts.iterativedeepening ? '-d' : ''),
+    abbns:      'ABBNS-'+String(algorithm.abbns.depth)+'-'+String(algorithm.abbns.bns)+(algorithm.abbns.iterativedeepening ? '-d' : ''),
     mixed1:     'MIXED(MTDf,MCTS)',
     mixed2:     'MIXED(MCTS,MTDf)',
     mixed3:     'MIXED(MCTS,BNS)',
+    mixed4:     'MIXED(BNS,MCTS)',
     sunfish:    'SUNFISH 2023',
-    stockfish:  'STOCKFISH 18 (ELO'+String(opts.stockfish.elo)+')'
+    stockfish:  'STOCKFISH 18 (ELO'+String(algorithm.stockfish.elo)+')'
 };
 
 function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
@@ -201,7 +200,7 @@ function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
                 if (args.SHOW)
                 {
                     output += game.isCheck() ? ' (check)' : '';
-                    console.log(output);
+                    echo(output);
                 }
             }
             else
@@ -209,7 +208,7 @@ function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
                 if (args.SHOW)
                 {
                     output = String(plies+1) + '. ' + game.whoseTurn().slice(0,1) + ':nomove';
-                    console.log(output);
+                    echo(output);
                 }
                 game.noMove();
             }
@@ -252,9 +251,9 @@ function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
         if (engine.stockfish)
         {
             engine.stockfish.sendCMD('uci');
-            //engine.stockfish.sendCMD('setoption name Skill Level value ' + String(opts.stockfish.skill));
+            //engine.stockfish.sendCMD('setoption name Skill Level value ' + String(algorithm.stockfish.skill));
             engine.stockfish.sendCMD('setoption name UCI_LimitStrength value true');
-            engine.stockfish.sendCMD('setoption name UCI_Elo value ' + String(opts.stockfish.elo));
+            engine.stockfish.sendCMD('setoption name UCI_Elo value ' + String(algorithm.stockfish.elo));
         }
         match = 0;
         matches_won_by_p1 = 0;
@@ -269,24 +268,24 @@ function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
         if (init[args.PLAYER2]) init[args.PLAYER2]();
         if (match & 1)
         {
-            console.log('Playing match '+String(match)+' of '+String(args.NUM_MATCHES)+': '+player[args.PLAYER1]+' vs '+player[args.PLAYER2]+' ..');
+            echo('Playing match '+String(match)+' of '+String(args.NUM_MATCHES)+': '+player[args.PLAYER1]+' vs '+player[args.PLAYER2]+' ..');
             play_match(play[args.PLAYER1], play[args.PLAYER2], function(score_for_white, plies) {
-                console.log('Result after '+String(plies)+' plies: '+(0.5 === score_for_white ? '½' : String(score_for_white))+' - '+(0.5 === score_for_white ? '½' : String(1-score_for_white)));
+                echo('Result after '+String(plies)+' plies: '+(0.5 === score_for_white ? '½' : String(score_for_white))+' - '+(0.5 === score_for_white ? '½' : String(1-score_for_white)));
                 tournament(match, matches_won_by_p1 + score_for_white, draws+(0.5 === score_for_white ? 1 : 0), Math.min(plies, min_plies), Math.max(plies, max_plies), done);
             });
         }
         else
         {
-            console.log('Playing match '+String(match)+' of '+String(args.NUM_MATCHES)+': '+player[args.PLAYER2]+' vs '+player[args.PLAYER1]+' ..');
+            echo('Playing match '+String(match)+' of '+String(args.NUM_MATCHES)+': '+player[args.PLAYER2]+' vs '+player[args.PLAYER1]+' ..');
             play_match(play[args.PLAYER2], play[args.PLAYER1], function(score_for_white, plies) {
-                console.log('Result after '+String(plies)+' plies: '+(0.5 === score_for_white ? '½' : String(score_for_white))+' - '+(0.5 === score_for_white ? '½' : String(1-score_for_white)));
+                echo('Result after '+String(plies)+' plies: '+(0.5 === score_for_white ? '½' : String(score_for_white))+' - '+(0.5 === score_for_white ? '½' : String(1-score_for_white)));
                 tournament(match, matches_won_by_p1 + 1-score_for_white, draws+(0.5 === score_for_white ? 1 : 0), Math.min(plies, min_plies), Math.max(plies, max_plies), done);
             });
         }
     }
     else if (args.NUM_MATCHES)
     {
-        console.log('In '+String(args.NUM_MATCHES)+' '+(1 === args.NUM_MATCHES ? 'match' : 'matches')+' of '+player[args.PLAYER1]+' vs '+player[args.PLAYER2]+' result is '+String(matches_won_by_p1)+' - '+String(args.NUM_MATCHES-matches_won_by_p1)+' ('+String(draws)+' '+(1 === draws ? 'draw' : 'draws')+',min.plies '+String(min_plies)+',max.plies '+String(max_plies)+')');
+        echo('In '+String(args.NUM_MATCHES)+' '+(1 === args.NUM_MATCHES ? 'match' : 'matches')+' of '+player[args.PLAYER1]+' vs '+player[args.PLAYER2]+' result is '+String(matches_won_by_p1)+' - '+String(args.NUM_MATCHES-matches_won_by_p1)+' ('+String(draws)+' '+(1 === draws ? 'draw' : 'draws')+',min.plies '+String(min_plies)+',max.plies '+String(max_plies)+')');
         if (done) done(matches_won_by_p1, args.NUM_MATCHES-matches_won_by_p1, draws, min_plies, max_plies);
     }
 }
@@ -316,7 +315,7 @@ if (-1 < [args.PLAYER1,args.PLAYER2].indexOf('sunfish'))
             }
             /*else if ('info ' === output.slice(0, 5))
             {
-                console.log(output);
+                echo(output);
             }*/
         });
     };
@@ -349,11 +348,11 @@ if (-1 < [args.PLAYER1,args.PLAYER2].indexOf('stockfish'))
         engine.stockfish.listener = function(output) {
             if ((typeof output) !== "string")
             {
-                console.log("Got line ("+(typeof output)+"):", output);
+                echo("Got line ("+(typeof output)+"):", output);
             }
             /*else if ('info ' === output.slice(0, 5))
             {
-                console.log(output);
+                echo(output);
             }*/
             else if ('bestmove ' === output.slice(0, 9))
             {
