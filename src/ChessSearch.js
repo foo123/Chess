@@ -697,7 +697,7 @@ function eval_move(board, score_up_to_now, sgn, color, move, opponent_moves)
     // O(1)
     var f1 = 1, f2 = board.halfMoves < 15 ? 0.12 : 0, f3 = board.halfMoves < 20 ? 0 : 0.12,
         opK = board.king[COLOR[OPPOSITE[color]]];
-    if (0 === opponent_moves) return !board.is_king_present(OPPOSITE[color]) || board.threatened_at_by(opK.y, opK.x, color) ? (sgn*MATE) : (sgn*MATE/2)/* DRAW as positive MATE/2*/;
+    if (0 === opponent_moves) return !board.is_king_present(OPPOSITE[color]) || board.threatened_at_by(opK.y, opK.x, color) ? (sgn*MATE) : (MATE/2)/*DRAW as always positive*/;
     var moved = move[0], taken = move[5],
         placed = board._[move[3]][move[4]],
         capture_gain = !taken || !taken.type ? 0 : piece_square_value(board, taken, move[3], move[4]),

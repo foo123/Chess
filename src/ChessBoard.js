@@ -18,22 +18,16 @@ else
 }('undefined' !== typeof self ? self : this, 'ChessBoard', function(undef) {
 "use strict";
 
-function ChessBoard(get_piece_at, container, container_moves)
+function ChessBoard(container, get_piece_at)
 {
-    var self = this, squares = null;
-    self.make = function(moves)  {
-        var nt, nb, nl, nr, span, i, j, square, piece;
+    var self = this;
+    self.make = function()  {
+        var nt, nb, nl, nr, span, i, j, squares, square, piece;
         container.textContent = '';
         addClass(container, 'chessboard');
         squares = $$('div');
         addClass(squares, 'chessboard-squares');
         container.appendChild(squares);
-        if (container_moves && moves)
-        {
-            addClass(moves, 'chessboard-moves');
-            container_moves.textContent = '';
-            container_moves.appendChild(moves);
-        }
         nt = $$('div');
         addClass(nt, 'chessboard-numbers');
         addClass(nt, 'top');
@@ -95,9 +89,6 @@ function ChessBoard(get_piece_at, container, container_moves)
     };
     self.container = function() {
         return container;
-    };
-    self.squares = function() {
-        return squares;
     };
     self.doMove = function(piece, square1, square2) {
         if ((square1=get_square(square1)) && (square2=get_square(square2)) && (piece = get_piece(piece)))

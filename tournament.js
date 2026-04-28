@@ -4,17 +4,17 @@
 
 // In 6 matches of STOCKFISH 18 (ELO1900) vs SUNFISH 2023 result is 5.5 - 0.5 (1 draw,min.plies 48,max.plies 68)
 
-// In 6 matches of AB-245-d vs SUNFISH 2023 result is 1 - 5 (2 draws,min.plies 40,max.plies 122)
-// In 6 matches of MTDf-245-d vs SUNFISH 2023 result is 3.5 - 2.5 (3 draws,min.plies 36,max.plies 106)
-// In 6 matches of BNS-7 vs SUNFISH 2023 result is 2.5 - 3.5 (1 draw,min.plies 34,max.plies 125)
-// In 6 matches of MCTS-10-4-500 vs SUNFISH 2023 result is 2 - 4 (0 draws,min.plies 22,max.plies 121)
-// In 6 matches of MCTS-15-4-500 vs SUNFISH 2023 result is 2 - 4 (2 draws,min.plies 38,max.plies 118)
-// In 6 matches of MCTS-25-4-500 vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 8,max.plies 132)
-// In 6 matches of MCTS-35-4-500 vs SUNFISH 2023 result is 3 - 3 (2 draws,min.plies 34,max.plies 130)
-// In 6 matches of ABMCTS-10-5-3-50 vs SUNFISH 2023 result is 4 - 2 (2 draws,min.plies 66,max.plies 130)
-// In 6 matches of ABMCTS-10-5-3-50-d vs SUNFISH 2023 result is 2.5 - 3.5 (3 draws,min.plies 18,max.plies 116)
-// In 6 matches of ABMCTS-15-5-3-100 vs SUNFISH 2023 result is 3.5 - 2.5 (3 draws,min.plies 46,max.plies 124)
-// In 6 matches of ABMCTS-10-8-6-100-d vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 20,max.plies 106)
+// In 6 matches of AB-245-d vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 30,max.plies 110)
+// In 6 matches of MTDf-245-d vs SUNFISH 2023 result is 2.5 - 3.5 (3 draws,min.plies 36,max.plies 120)
+// In 6 matches of BNS-7 vs SUNFISH 2023 result is 1.5 - 4.5 (1 draw,min.plies 30,max.plies 108)
+// In 6 matches of BNS-8 vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 44,max.plies 140)
+// In 6 matches of MCTS-10-4-500 vs SUNFISH 2023 result is 2 - 4 (4 draws,min.plies 36,max.plies 140)
+// In 6 matches of MCTS-15-4-500 vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 20,max.plies 116)
+// In 6 matches of MCTS-25-4-500 vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 36,max.plies 144)
+// In 6 matches of MCTS-35-4-500 vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 8,max.plies 148)
+
+// In 6 matches of ABMCTS-10-5-3-100 vs SUNFISH 2023 result is 3.5 - 2.5 (3 draws,min.plies 38,max.plies 80)
+
 // In 6 matches of MIXED(MCTS-10,MTDf) vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 36,max.plies 111)
 // In 6 matches of MIXED(MTDf,MCTS-10) vs SUNFISH 2023 result is 2 - 4 (2 draws,min.plies 40,max.plies 114)
 // In 6 matches of MIXED(MCTS-15,MTDf) vs SUNFISH 2023 result is 2 - 4 (4 draws,min.plies 58,max.plies 126)
