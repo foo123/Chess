@@ -1,6 +1,6 @@
 /**
 *  ChessBoard
-*  A chess board for HTML
+*  A chess board for HTML and Terminal
 *  https://github.com/foo123/chess.js
 *  @VERSION: 1.0.0
 *
@@ -18,74 +18,189 @@ else
 }('undefined' !== typeof self ? self : this, 'ChessBoard', function(undef) {
 "use strict";
 
-function ChessBoard(container, get_piece_at)
+function ChessBoard(get_piece_at, container)
 {
     var self = this;
-    self.make = function()  {
-        var nt, nb, nl, nr, span, i, j, squares, square, piece;
+
+    if (!(self instanceof ChessBoard)) return new ChessBoard(get_piece_at, container);
+    if ("function" !== typeof get_piece_at) get_piece_at = null;
+
+    self.dispose = function() {
+        get_piece_at = null;
+        container = null;
+    };
+    self.toHTML = function(forPlayer)  {
+        if (!container) return;
+        forPlayer = String(forPlayer || "white").toLowerCase();
+        var nt, nb, nl, nr, span, ii, i, jj, j, squares, square, piece;
+
         container.textContent = '';
         addClass(container, 'chessboard');
-        squares = $$('div');
+
+        // squares
+        squares = create('div');
         addClass(squares, 'chessboard-squares');
         container.appendChild(squares);
-        nt = $$('div');
+
+        // top numbering
+        nt = create('div');
         addClass(nt, 'chessboard-numbers');
         addClass(nt, 'top');
         container.appendChild(nt);
-        nb = $$('div');
+
+        // bottom numbering
+        nb = create('div');
         addClass(nb, 'chessboard-numbers');
         addClass(nb, 'bottom');
         container.appendChild(nb);
-        nl = $$('div');
+
+        // left numbering
+        nl = create('div');
         addClass(nl, 'chessboard-numbers');
         addClass(nl, 'left');
         container.appendChild(nl);
-        nr = $$('div');
+
+        // right numbering
+        nr = create('div');
         addClass(nr, 'chessboard-numbers');
         addClass(nr, 'right');
         container.appendChild(nr);
-        for (i=8; i>=1; --i)
+
+        for (ii=8; ii>=1; --ii)
         {
-            span = $$('span');
+            i = "black" === forPlayer ? 9-ii : ii;
+            span = create('span');
             span.textContent = String(i);
             span.style.setProperty('--x', '0');
             span.style.setProperty('--y', String(8-i));
             nl.appendChild(span);
 
-            span = $$('span');
+            span = create('span');
             span.textContent = String(i);
             span.style.setProperty('--x', '0');
             span.style.setProperty('--y', String(8-i));
             nr.appendChild(span);
 
-            span = $$('span');
+            span = create('span');
             span.textContent = String.fromCharCode('a'.charCodeAt(0) + 8-i);
             span.style.setProperty('--y', '0');
             span.style.setProperty('--x', String(8-i));
             nt.appendChild(span);
 
-            span = $$('span');
+            span = create('span');
             span.textContent = String.fromCharCode('a'.charCodeAt(0) + 8-i);
             span.style.setProperty('--y', '0');
             span.style.setProperty('--x', String(8-i));
             nb.appendChild(span);
 
-            for (j=0; j<8; ++j)
+            for (jj=0; jj<8; ++jj)
             {
-                square = $$('div');
+                j = "black" === forPlayer ? 7-jj : jj;
+                square = create('button');
                 square.id = String.fromCharCode('a'.charCodeAt(0) + j)+''+String(i);
                 square.style.setProperty('--x', String(j));
                 square.style.setProperty('--y', String(8-i));
                 addClass(square, 'square');
                 addClass(square, i & 1 ? (j & 1 ? 'white' : 'black') : (j & 1 ? 'black' : 'white'));
-                if (get_piece_at)
+                attr(square, 'title', 'square '+square.id+' is empty');
+                if (get_piece_at && (piece = get_piece(get_piece_at(square.id))))
                 {
-                    piece = get_piece(get_piece_at(square.id));
-                    if (piece) add(square, piece);
+                    add(square, piece);
                 }
                 squares.appendChild(square);
             }
         }
+        return container;
+    };
+    self.toString = function(forPlayer, type) {
+        type = String(type || "string").toLowerCase();
+        forPlayer = String(forPlayer || "white").toLowerCase();
+        var ii, i,
+            jj, j, k,
+            square,
+            square_color,
+            piece,
+            symbol_string = {
+                pawn: "p",
+                rook: "r",
+                knight: "n",
+                bishop: "b",
+                queen: "q",
+                king: "k"
+            },
+            symbol_terminal = {
+                pawn: "\u2659",
+                rook: "\u265C",
+                knight: "\u265E",
+                bishop: "\u265D",
+                queen: "\u265B",
+                king: "\u265A"
+            },
+            out = '';
+        out += '  ';
+        for (i=0; i<8; ++i)
+        {
+            out += '  ' + String.fromCharCode('a'.charCodeAt(0) + ("black" === forPlayer ? 7-i : i)) + '  ';
+        }
+        for (ii=8; ii>=1; --ii)
+        {
+            i = "black" === forPlayer ? 9-ii : ii;
+            for (k=-1; k<=1; ++k)
+            {
+                out += "\n";
+                out += String(k ? ' ' : i) + ' ';
+                for (jj=0; jj<8; ++jj)
+                {
+                    j = "black" === forPlayer ? 7-jj : jj;
+                    square = String.fromCharCode('a'.charCodeAt(0) + j)+''+String(i);
+                    square_color = i & 1 ? (j & 1 ? 'white' : 'black') : (j & 1 ? 'black' : 'white');
+                    if (k)
+                    {
+                        if ("terminal" === type)
+                        {
+                            out += "\x1b[" + ('black' === square_color ? '41' : '43') + "m     \x1b[0m";
+                        }
+                        else
+                        {
+                            out += 'black' === square_color ? '#####' : '     ';
+                        }
+                    }
+                    else
+                    {
+                        if (get_piece_at && (piece = get_piece(get_piece_at(square))))
+                        {
+                            if ("terminal" === type)
+                            {
+                                out += "\x1b[" + ('black' === piece.color.toLowerCase() ? '30' : '37') + ";" + ('black' === square_color ? '41' : '43') + "m  " + (symbol_terminal[piece.type.toLowerCase()] || " ") + "  \x1b[0m";
+                            }
+                            else
+                            {
+                                out += ('black' === square_color ? '# ' : '  ') + symbol_string[piece.type.toLowerCase()]['black' === piece.color.toLowerCase() ? 'toLowerCase' : 'toUpperCase']() + ('black' === square_color ? ' #' : '  ');
+                            }
+                        }
+                        else
+                        {
+                            if ("terminal" === type)
+                            {
+                                out += "\x1b[" + ('black' === square_color ? '41' : '43') + "m     \x1b[0m";
+                            }
+                            else
+                            {
+                                out += 'black' === square_color ? '#####' : '     ';
+                            }
+                        }
+                    }
+                }
+                out += ' ' + String(k ? ' ' : i);
+            }
+        }
+        out += "\n";
+        out += '  ';
+        for (i=0; i<8; ++i)
+        {
+            out += '  ' + String.fromCharCode('a'.charCodeAt(0) + ("black" ===forPlayer ? 7-i : i)) + '  ';
+        }
+        return out;
     };
     self.container = function() {
         return container;
@@ -100,11 +215,11 @@ function ChessBoard(container, get_piece_at)
                 // handle en passants
                 if ('BLACK' === piece.color && '3' === square2.id.charAt(1))
                 {
-                    maybe_remove(el(square2.id.charAt(0)+'4'), get_piece_at(square2.id.charAt(0)+'4'));
+                    maybe_remove(get_square(square2.id.charAt(0)+'4'), get_piece_at(square2.id.charAt(0)+'4'));
                 }
                 if ('WHITE' === piece.color && '6' === square2.id.charAt(1))
                 {
-                    maybe_remove(el(square2.id.charAt(0)+'5'), get_piece_at(square2.id.charAt(0)+'5'));
+                    maybe_remove(get_square(square2.id.charAt(0)+'5'), get_piece_at(square2.id.charAt(0)+'5'));
                 }
             }
 
@@ -115,12 +230,12 @@ function ChessBoard(container, get_piece_at)
                     if ('g1' === square2.id)
                     {
                         // kingside castling white
-                        move(get_piece_at('f1'), el('h1'), el('f1'));
+                        move(get_piece_at('f1'), get_square('h1'), get_square('f1'));
                     }
                     else if ('c1' === square2.id)
                     {
                         // queenside castling white
-                        move(get_piece_at('d1'), el('a1'), el('d1'));
+                        move(get_piece_at('d1'), get_square('a1'), get_square('d1'));
                     }
                 }
                 else if ('e8' === square1.id)
@@ -128,26 +243,26 @@ function ChessBoard(container, get_piece_at)
                     if ('g8' === square2.id)
                     {
                         // kingside castling black
-                        move(get_piece_at('f8'), el('h8'), el('f8'));
+                        move(get_piece_at('f8'), get_square('h8'), get_square('f8'));
                     }
                     else if ('c8' === square2.id)
                     {
                         // queenside castling black
-                        move(get_piece_at('d8'), el('a8'), el('d8'));
+                        move(get_piece_at('d8'), get_square('a8'), get_square('d8'));
                     }
                 }
             }
         }
     };
-    self.undoMove = function(piece, otherpiece, square1, square2) {
+    self.undoMove = function(piece, removed_piece, square1, square2) {
         if ((square1=get_square(square1)) && (square2=get_square(square2)))
         {
             empty(square1);
             empty(square2);
             piece = get_piece(piece);
-            otherpiece = get_piece(otherpiece);
+            removed_piece = get_piece(removed_piece);
             if (piece) add(square1, piece);
-            if (otherpiece) add(square2, otherpiece);
+            if (removed_piece) add(square2, removed_piece);
 
             if (piece)
             {
@@ -156,11 +271,11 @@ function ChessBoard(container, get_piece_at)
                     // handle en passants
                     if ('BLACK' === piece.color && '3' === square2.id.charAt(1))
                     {
-                        add(el(square2.id.charAt(0)+'4'), get_piece_at(square2.id.charAt(0)+'4'));
+                        add(get_square(square2.id.charAt(0)+'4'), get_piece_at(square2.id.charAt(0)+'4'));
                     }
                     if ('WHITE' === piece.color && '6' === square2.id.charAt(1))
                     {
-                        add(el(square2.id.charAt(0)+'5'), get_piece_at(square2.id.charAt(0)+'5'));
+                        add(get_square(square2.id.charAt(0)+'5'), get_piece_at(square2.id.charAt(0)+'5'));
                     }
                 }
 
@@ -171,12 +286,12 @@ function ChessBoard(container, get_piece_at)
                         if ('g1' === square2.id)
                         {
                             // kingside castling white
-                            move(get_piece_at('h1'), el('f1'), el('h1'));
+                            move(get_piece_at('h1'), get_square('f1'), get_square('h1'));
                         }
                         else if ('c1' === square2.id)
                         {
                             // queenside castling white
-                            move(get_piece_at('a1'), el('d1'), el('a1'));
+                            move(get_piece_at('a1'), get_square('d1'), get_square('a1'));
                         }
                     }
                     else if ('e8' === square1.id)
@@ -184,30 +299,47 @@ function ChessBoard(container, get_piece_at)
                         if ('g8' === square2.id)
                         {
                             // kingside castling black
-                            move(get_piece_at('h8'), el('f8'), el('h8'));
+                            move(get_piece_at('h8'), get_square('f8'), get_square('h8'));
                         }
                         else if ('c8' === square2.id)
                         {
                             // queenside castling black
-                            move(get_piece_at('a8'), el('d8'), el('a8'));
+                            move(get_piece_at('a8'), get_square('d8'), get_square('a8'));
                         }
                     }
                 }
             }
         }
     };
-    self.showPossibleMoves = function(moves) {
-        moves.forEach(function(m) {addClass(el(m.length > 2 ? m.slice(0, 2) : m), 'active');});
+    self.showPossibleMoves = function(moves, start) {
+        moves.forEach(function(move) {
+            var square = get_square(move.length > 2 ? move.slice(0, 2) : move);
+            addClass(square, 'active');
+            if (square !== start) attr(square, 'title', attr(square, 'title')+' (a move here from '+start.id+' is possible)');
+        });
     };
     self.clearPossibleMoves = function() {
-        $('.square.active', container).forEach(function(s) {removeClass(s, 'active');});
+        query('.square.active', container).forEach(function(square) {
+            attr(removeClass(square, 'active'), 'title', attr(square, 'title').split(' (')[0]);
+        });
     };
 }
+ChessBoard.prototype = {
+    constructor: ChessBoard,
+    dispose: null,
+    toHTML: null,
+    toString: null,
+    container: null,
+    doMove: null,
+    undoMove: null,
+    showPossibleMoves: null,
+    clearPossibleMoves: null
+};
 
 // utils
 function get_square(square)
 {
-    if ("string" === typeof square) square = el(square);
+    if ("string" === typeof square) square = get(square);
     return square || null;
 }
 function get_piece(piece)
@@ -269,11 +401,13 @@ function empty(square)
     removeClass(square, 'b-queen');
     removeClass(square, 'w-king');
     removeClass(square, 'b-king');
+    attr(square, 'title', 'square '+square.id+' is empty');
 }
 function add(square, piece)
 {
     addClass(square, ('BLACK' === piece.color ? 'b-' : 'w-') + piece.type.toLowerCase());
     addClass(square, 'piece');
+    attr(square, 'title', piece.color+' '+piece.type+' is on square '+square.id);
 }
 function move(piece, square1, square2)
 {
@@ -285,17 +419,26 @@ function maybe_remove(square, piece)
 {
     if (square && !piece) empty(square);
 }
-function el(id)
-{
-    return document.getElementById(id);
-}
-function $(sel, el)
+function query(sel, el)
 {
     return Array.prototype.slice.call((el || document).querySelectorAll(sel) || []);
 }
-function $$(tag)
+function get(id)
+{
+    return document.getElementById(id);
+}
+function create(tag)
 {
     return document.createElement(tag);
+}
+function attr(el, att, val)
+{
+    if (3 === arguments.length)
+    {
+        el.setAttribute(att, String(val));
+        return el;
+    }
+    return el.getAttribute(att);
 }
 function hasClass(el, className)
 {

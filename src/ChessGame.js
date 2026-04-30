@@ -995,6 +995,9 @@ function ChessGame(options)
     if ('string' === typeof options) options = {fen:options};
     options = options || {};
     var self = this, board, kc = null, kt = null, cmi = null, lost = null;
+
+    if (!(self instanceof ChessGame)) return new ChessGame(options);
+
     self.reset = function() {
         if (board) board.dispose();
         board = new Board('string' === typeof options.fen ? options.fen : options);
@@ -1009,6 +1012,13 @@ function ChessGame(options)
             //[p1, y1, x1, y2, x2, p2, kc, qc, moved, promotion, ep, pp]
             return xy2s(m[1], m[2]) + xy2s(m[3], m[4]) + (m[11] ? PIECE_SHORT[m[11]].toLowerCase() : '');
         });
+    };
+    self.lastMove = function() {
+        if (board.history.length)
+        {
+            var m = board.history[board.history.length-1];
+            return {from:xy2s(m[1], m[2]), to:xy2s(m[3], m[4])};
+        }
     };
     self.getFEN = function() {
         return board.fen();
@@ -1065,16 +1075,16 @@ function ChessGame(options)
             board.hash[pos] = stdMath.max(0, (board.hash[pos]||0)-1);
             board.turn = OPPOSITE[board.turn];
             kc = kt = cmi = null;
-            return [xy2s(move[1],move[2]), {color:COLOR[piece1.color],type:PIECE[piece1.type]}, xy2s(move[3],move[4]), piece2.type ? {color:COLOR[piece2.color],type:PIECE[piece2.type]} : null];
+            return {from:xy2s(move[1], move[2]), to:xy2s(move[3], move[4]), moved_piece:{color:COLOR[piece1.color], type:PIECE[piece1.type]}, removed_piece:piece2.type ? {color:COLOR[piece2.color], type:PIECE[piece2.type]} : null};
         }
     };
     self.redoMove = function() {
         if (board.redo.length)
         {
             var move = board.redo.pop(), redo = board.redo;
-            self.doMove(xy2s(move[1],move[2]), xy2s(move[3],move[4]), PIECE[move[9]]);
+            self.doMove(xy2s(move[1], move[2]), xy2s(move[3], move[4]), PIECE[move[9]]);
             board.redo = redo;
-            return [xy2s(move[1],move[2]), xy2s(move[3],move[4])];
+            return {from:xy2s(move[1], move[2]), to:xy2s(move[3], move[4])};
         }
     };
     self.noMove = function() {
@@ -1181,6 +1191,7 @@ ChessGame[proto] = {
     whoseTurn: null,
     getBoard: null,
     getMovesUpToNow: null,
+    lastMove: null,
     getFEN: null,
     getPieceAt: null,
     getPossibleMovesAt: null,

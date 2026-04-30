@@ -2,7 +2,9 @@
 
 Chess Game, Chess Board, Chess Engine and Chess Exercises
 
-![chess game](/screenshot.png)
+![chess game browser](/screenshot-browser.png)
+
+![chess game terminal](/screenshot-terminal.png)
 
 ## ChessGame
 
@@ -11,7 +13,7 @@ version: 1.0.0
 
 ## ChessBoard
 
-Represents the board of chess in HTML.  
+Represents the board of chess in HTML and in Terminal.  
 version: 1.0.0
 
 ## ChessSearch

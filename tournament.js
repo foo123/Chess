@@ -25,7 +25,7 @@ const args = (function parse_args() {
     const args = {
         PLAYER1:        'ab',
         PLAYER2:        'sunfish',
-        NUM_MATCHES:    2,
+        NUM_MATCHES:    1,
         SHOW:           false,
         DEEPEN:         false,
         DEPTH:          3,
@@ -37,7 +37,8 @@ const args = (function parse_args() {
         ELO:            1500
     };
 
-    const supported_engines = [
+    const supported_players = [
+        'human',
         'ab',
         'mtdf',
         'bns',
@@ -56,14 +57,14 @@ const args = (function parse_args() {
     args.PLAYER1 = (process.argv[2] || 'ab').trim().toLowerCase();
     args.PLAYER2 = (process.argv[3] || 'sunfish').trim().toLowerCase();
 
-    if (-1 === supported_engines.indexOf(args.PLAYER1) || -1 === supported_engines.indexOf(args.PLAYER2))
+    if (-1 === supported_players.indexOf(args.PLAYER1) || -1 === supported_players.indexOf(args.PLAYER2))
     {
-        echo('Unsupported engines: '+[args.PLAYER1,args.PLAYER2].join(' vs '));
-        echo('Supported engines/algorithms: '+supported_engines.join(', '));
+        echo('Unsupported players: '+[args.PLAYER1,args.PLAYER2].join(' vs '));
+        echo('Supported players: '+supported_players.join(', '));
         process.exit(1);
     }
 
-    args.NUM_MATCHES = parseInt(process.argv[4] || '2') || 2;
+    args.NUM_MATCHES = parseInt(process.argv[4] || '1') || 1;
     let i = 5;
     while (process.argv.length > i)
     {
@@ -83,11 +84,13 @@ const args = (function parse_args() {
 })();
 
 const ChessGame = require('./src/ChessGame.js');
+const ChessBoard = require('./src/ChessBoard.js');
 const ChessSearch = require('./src/ChessSearch.js');
 const engine = {
     sunfish:    null,
     stockfish:  null
 };
+let repl = null;
 const algorithm = {
     ab:        {algo:"ab", iterativedeepening:true, depth:245, time:10000, log:args.SHOW},
     mtdf:      {algo:"mtdf", iterativedeepening:true, depth:245, time:10000, log:args.SHOW},
@@ -164,6 +167,17 @@ const play = {
         engine.stockfish.move = then;
         engine.stockfish.sendCMD('position startpos moves ' + game.getMovesUpToNow().join(' '));
         engine.stockfish.sendCMD('go ' + (algorithm.stockfish.depth ? ('depth ' + String(algorithm.stockfish.depth)) : '') + (algorithm.stockfish.time ? ('wtime ' + String(algorithm.stockfish.time) + ' btime ' + String(algorithm.stockfish.time)) : ''));
+    },
+    human: function(game, then) {
+        if (repl)
+        {
+            //repl.setPrompt(game.whoseTurn().slice(0,1) + ': ');
+            repl.context.then = then;
+        }
+        else
+        {
+            then(null);
+        }
     }
 };
 const player = {
@@ -179,7 +193,8 @@ const player = {
     mixed3:     'MIXED(MCTS,BNS)',
     mixed4:     'MIXED(BNS,MCTS)',
     sunfish:    'SUNFISH 2023',
-    stockfish:  'STOCKFISH 18 (ELO'+String(algorithm.stockfish.elo)+')'
+    stockfish:  'STOCKFISH 18 (ELO'+String(algorithm.stockfish.elo)+')',
+    human: 'human'
 };
 
 function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
@@ -191,16 +206,24 @@ function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
             let output;
             if (move)
             {
-                ++plies;
-                if (args.SHOW)
+                if ("undo" === move)
                 {
-                    output = String(plies)+'. ' + game.whoseTurn().slice(0,1) + ':' + move.from + move.to + (move.promotion || '');
+                    if (game.undoMove()) --plies; // undo opponent move
+                    if (game.undoMove()) --plies; // undo player move
                 }
-                game.doMove(move.from, move.to, move.promotion);
-                if (args.SHOW)
+                else
                 {
-                    output += game.isCheck() ? ' (check)' : '';
-                    echo(output);
+                    ++plies;
+                    if (args.SHOW)
+                    {
+                        output = String(plies)+'. ' + game.whoseTurn().slice(0,1) + ':' + move.from + move.to + (move.promotion || '');
+                    }
+                    game.doMove(move.from, move.to, move.promotion);
+                    if (args.SHOW)
+                    {
+                        output += game.isCheck() ? ' (check)' : '';
+                        echo(output);
+                    }
                 }
             }
             else
@@ -216,27 +239,33 @@ function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
             {
                 const winner = game.winner();
                 const score = 'DRAW' === winner ? 0.5 : ('WHITE' === winner ? 1 : 0);
+                board.dispose();
                 game.dispose();
                 return GAME_OVER(score, plies);
             }
             switch (game.whoseTurn())
             {
                 case 'WHITE':
+                if ('human' === WHITE.player) echo(board.toString("WHITE", "terminal"));
                 WHITE(game, play_next);
                 break;
                 case 'BLACK':
+                if ('human' === BLACK.player) echo(board.toString("BLACK", "terminal"));
                 BLACK(game, play_next);
                 break;
             }
         }
         const game = new ChessGame();
+        const board = new ChessBoard(square => game.getPieceAt(square));
         let plies = 0;
         switch (game.whoseTurn())
         {
             case 'WHITE':
+            if ('human' === WHITE.player) echo(board.toString("WHITE", "terminal"));
             WHITE(game, play_next);
             break;
             case 'BLACK':
+            if ('human' === BLACK.player) echo(board.toString("BLACK", "terminal"));
             BLACK(game, play_next);
             break;
         }
@@ -260,6 +289,8 @@ function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
         draws = 0;
         min_plies = 1e6;
         max_plies = 0;
+        play[args.PLAYER1].player = player[args.PLAYER1];
+        play[args.PLAYER2].player = player[args.PLAYER2];
     }
     if (match < args.NUM_MATCHES)
     {
@@ -302,6 +333,34 @@ function go()
 }
 go.waitFor = 0;
 
+if (-1 < [args.PLAYER1,args.PLAYER2].indexOf('human'))
+{
+    // init repl
+    repl = require('repl').start({
+        prompt: '',
+        eval: function(move, ctx, r, cb) {
+            move = String(move).trim().toLowerCase();
+            if ("undo" === move)
+            {
+                cb(null, "");
+                ctx.then("undo");
+            }
+            else
+            {
+                const match = move.match(/([a-h][1-8])\s*([a-h][1-8])\s*([qrbn])?/);
+                if (match)
+                {
+                    cb(null, "");
+                    ctx.then({from:match[1], to:match[2], promotion:match[3]});
+                }
+                else
+                {
+                    cb(null, "invalid move");
+                }
+            }
+        }
+    });
+}
 if (-1 < [args.PLAYER1,args.PLAYER2].indexOf('sunfish'))
 {
     // load sunfish engine
