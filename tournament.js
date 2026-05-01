@@ -1,6 +1,6 @@
 "use strict";
 
-// use: node tournament.js engine1 engine2 nmatches --show --deepen --depth=DEPTH --bns=BNS --ab=AB --mcts=MCTS --uct=UCT --iter=ITER --elo=ELO --name1=PLAYER1 --name2=PLAYER2
+// use: node tournament.js player1 player2 nmatches --show --deepen --depth=DEPTH --bns=BNS --ab=AB --mcts=MCTS --uct=UCT --iter=ITER --elo=ELO --name1=PLAYER1 --name2=PLAYER2
 
 // In 6 matches of STOCKFISH 18 (ELO1900) vs SUNFISH 2023 result is 5.5 - 0.5 (1 draw,min.plies 48,max.plies 68)
 
@@ -82,9 +82,6 @@ const args = (function parse_args() {
         if ('--name2=' === process.argv[i].slice(0, 8).toLowerCase()) args.PLAYER2.name = process.argv[i].slice(8).trim();
         ++i;
     }
-
-    if (!args.PLAYER1.name) args.PLAYER1.name = args.PLAYER1.player;
-    if (!args.PLAYER2.name) args.PLAYER2.name = args.PLAYER2.player;
     return args;
 })();
 
@@ -350,6 +347,9 @@ function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
         draws = 0;
         min_plies = 1e6;
         max_plies = 0;
+
+        if (!args.PLAYER1.name || !args.PLAYER1.name.length) args.PLAYER1.name = player[args.PLAYER1.player];
+        if (!args.PLAYER2.name || !args.PLAYER2.name.length) args.PLAYER2.name = player[args.PLAYER2.player];
     }
     if (match < args.NUM_MATCHES)
     {
