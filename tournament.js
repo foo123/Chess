@@ -277,8 +277,8 @@ function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
             }
             if (game.isGameOver())
             {
-                repl_prompt('');
-                repl_echo();
+                //repl_prompt('');
+                //repl_echo();
                 const winner = game.winner();
                 const score = 'DRAW' === winner ? 0.5 : ('WHITE' === winner ? 1 : 0);
                 board.dispose();
