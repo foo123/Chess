@@ -104,7 +104,7 @@ ChessSearch.HybridSearch[proto].bestMove = function(color) {
     opts.algo = null != self.opts.algo ? String(self.opts.algo).toLowerCase() : "ab";
     opts.eval_pos = self.opts.eval_pos;
     opts.eval_move = self.opts.eval_move || eval_move;
-    opts.MATE = opts.eval_pos ? (opts.eval_pos.MATE) : (opts.eval_move.MATE);
+    opts.MATE = null == self.opts.MATE ? (opts.eval_pos ? (opts.eval_pos.MATE) : (opts.eval_move.MATE)) : (self.opts.MATE);
 
     opts.depth = stdMath.max((+self.opts.depth) || 0, 1);
     opts.depthM = opts.depth;

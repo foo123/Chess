@@ -197,7 +197,7 @@ function ChessBoard(get_piece_at)
                     {
                         if ("terminal" === type)
                         {
-                            out += "\x1b[" + ('black' === square_color ? '41' : '103') + "m     \x1b[0m";
+                            out += "\x1b[" + ('black' === square_color ? /*'41'*/'48;2;119;97;63' : /*'43''103'*/'48;2;225;183;119') + "m     \x1b[0m";
                         }
                         else
                         {
@@ -210,7 +210,7 @@ function ChessBoard(get_piece_at)
                         {
                             if ("terminal" === type)
                             {
-                                out += "\x1b[" + ('black' === piece.color.toLowerCase() ? '30' : '37') + ";" + ('black' === square_color ? '41' : '103') + "m  " + (pieceset[piece.color.toLowerCase()][piece.type.toLowerCase()] || ' ') + "  \x1b[0m";
+                                out += "\x1b[" + ('black' === piece.color.toLowerCase() ? '30' : '1;37') + ";" + ('black' === square_color ? /*'41'*/'48;2;119;97;63' : /*'43''103'*/'48;2;225;183;119') + "m  " + (pieceset[piece.color.toLowerCase()][piece.type.toLowerCase()] || ' ') + "  \x1b[0m";
                             }
                             else
                             {
@@ -221,7 +221,7 @@ function ChessBoard(get_piece_at)
                         {
                             if ("terminal" === type)
                             {
-                                out += "\x1b[" + ('black' === square_color ? '41' : '103') + "m     \x1b[0m";
+                                out += "\x1b[" + ('black' === square_color ? /*'41'*/'48;2;119;97;63' : /*'43''103'*/'48;2;225;183;119') + "m     \x1b[0m";
                             }
                             else
                             {

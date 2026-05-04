@@ -17,8 +17,10 @@
 // In 6 matches of MCTS-10-5-500 vs SUNFISH 2023 result is 2.5 - 3.5 (1 draw,min.plies 18,max.plies 149)
 // In 6 matches of MCTS-15-4-500 vs SUNFISH 2023 result is 2.5 - 3.5 (5 draws,min.plies 36,max.plies 118)
 // In 6 matches of MCTS-15-5-500 vs SUNFISH 2023 result is 3 - 3 (0 draws,min.plies 20,max.plies 64)
+// In 6 matches of MCTS-15-10-1000 vs SUNFISH 2023 result is 3 - 3 (4 draws,min.plies 38,max.plies 164)
 // In 6 matches of MCTS-25-4-500 vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 32,max.plies 118)
 // In 6 matches of MCTS-25-5-500 vs SUNFISH 2023 result is 2 - 4 (4 draws,min.plies 34,max.plies 142)
+// In 6 matches of MCTS-25-10-1000 vs SUNFISH 2023 result is 2 - 4 (2 draws,min.plies 42,max.plies 138)
 // In 6 matches of MCTS-35-4-500 vs SUNFISH 2023 result is 1.5 - 4.5 (3 draws,min.plies 30,max.plies 128)
 // In 6 matches of MCTS-35-5-500 vs SUNFISH 2023 result is 2.5 - 3.5 (3 draws,min.plies 38,max.plies 124)
 
@@ -176,7 +178,7 @@ const play = {
         engine.stockfish.sendCMD('position startpos moves ' + game.getMovesUpToNow().join(' '));
         engine.stockfish.sendCMD('go ' + (algorithm.stockfish.depth ? ('depth ' + String(algorithm.stockfish.depth)) : '') + (algorithm.stockfish.time ? ('wtime ' + String(algorithm.stockfish.time) + ' btime ' + String(algorithm.stockfish.time)) : ''));
     },
-    human: function(game, then, player) {
+    human: function(game, then, board, player) {
         if (!repl)
         {
             // init repl
@@ -217,6 +219,7 @@ const play = {
             repl.context.msg = '';
         }
         repl.context.game = game;
+        repl.context.board = board;
         repl.context.then = then;
     }
 };
@@ -277,8 +280,6 @@ function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
             }
             if (game.isGameOver())
             {
-                //repl_prompt('');
-                //repl_echo();
                 const winner = game.winner();
                 const score = 'DRAW' === winner ? 0.5 : ('WHITE' === winner ? 1 : 0);
                 board.dispose();
@@ -296,7 +297,7 @@ function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
                         repl_prompt(WHITE.name+': ');
                         repl_echo();
                     }
-                    play[WHITE.player](game, play_next, WHITE.name);
+                    play[WHITE.player](game, play_next, board, WHITE.name);
                     break;
                     case 'BLACK':
                     if ('human' === BLACK.player)
@@ -305,7 +306,7 @@ function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
                         repl_prompt(BLACK.name+': ');
                         repl_echo();
                     }
-                    play[BLACK.player](game, play_next, BLACK.name);
+                    play[BLACK.player](game, play_next, board, BLACK.name);
                     break;
                 }
             }
@@ -322,7 +323,7 @@ function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
                 repl_prompt(WHITE.name+': ');
                 repl_echo();
             }
-            play[WHITE.player](game, play_next, WHITE.name);
+            play[WHITE.player](game, play_next, board, WHITE.name);
             break;
             case 'BLACK':
             if ('human' === BLACK.player)
@@ -331,7 +332,7 @@ function tournament(match, matches_won_by_p1, draws, min_plies, max_plies, done)
                 repl_prompt(BLACK.name+': ');
                 repl_echo();
             }
-            play[BLACK.player](game, play_next, BLACK.name);
+            play[BLACK.player](game, play_next, board, BLACK.name);
             break;
         }
     }

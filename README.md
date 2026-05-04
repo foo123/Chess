@@ -28,7 +28,8 @@ Methods:
 * Monte Carlo Tree Search
 * Hybrids of above methods
 
-A user-defined evaluation function can be used, else a custom-crafted evaluation function is used which, although simple and fast, produces quite good results (see `tournament.js` for some tentative results).
+A user-defined evaluation function can be used, else a custom-crafted evaluation function is used which, although simple and fast, produces quite good results (see `tournament.js` for some tentative results).  
+The evaluation function should explicitly declare in the options the value of MATE (`opts.MATE`), and should return values strictly between `-MATE` (losing) and `MATE` (winning) and only `MATE/2` for a draw.
 
 Related References:
 1. "An analysis of alpha-beta pruning", Donald E. Knuth, Ronald W. Moore, 1975
